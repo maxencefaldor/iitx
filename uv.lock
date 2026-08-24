@@ -552,6 +552,7 @@ docs = [
 examples = [
     { name = "ipykernel" },
     { name = "matplotlib" },
+    { name = "nbclient" },
 ]
 
 [package.metadata]
@@ -565,6 +566,7 @@ requires-dist = [
     { name = "mkdocs-jupyter", marker = "extra == 'docs'" },
     { name = "mkdocs-material", marker = "extra == 'docs'" },
     { name = "mkdocstrings", extras = ["python"], marker = "extra == 'docs'" },
+    { name = "nbclient", marker = "extra == 'examples'" },
     { name = "numpy" },
     { name = "pot" },
     { name = "pytest", marker = "extra == 'dev'" },

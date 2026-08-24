@@ -52,6 +52,7 @@ docs = [
 examples = [
 	"ipykernel",
 	"matplotlib",
+	"nbclient",
 ]
 
 [project.urls]
