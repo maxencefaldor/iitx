@@ -486,21 +486,21 @@ docs = [
 
 [package.metadata]
 requires-dist = [
-    { name = "beartype", marker = "extra == 'dev'", specifier = ">=0.21.0" },
-    { name = "chex", marker = "extra == 'dev'", specifier = ">=0.1.90" },
-    { name = "jax", specifier = ">=0.11.0" },
-    { name = "jaxtyping", specifier = ">=0.3.2" },
+    { name = "beartype", marker = "extra == 'dev'" },
+    { name = "chex", marker = "extra == 'dev'" },
+    { name = "jax" },
+    { name = "jaxtyping" },
     { name = "mkdocs", marker = "extra == 'docs'" },
     { name = "mkdocs-jupyter", marker = "extra == 'docs'" },
     { name = "mkdocs-material", marker = "extra == 'docs'" },
     { name = "mkdocstrings", extras = ["python"], marker = "extra == 'docs'" },
-    { name = "numpy", specifier = ">=2.3.0" },
-    { name = "pot", specifier = ">=0.9.5" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3.0" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=6.0.0" },
-    { name = "pytest-xdist", marker = "extra == 'dev'", specifier = ">=3.6.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.15.0" },
-    { name = "ty", marker = "extra == 'dev'", specifier = ">=0.0.38" },
+    { name = "numpy" },
+    { name = "pot" },
+    { name = "pytest", marker = "extra == 'dev'" },
+    { name = "pytest-cov", marker = "extra == 'dev'" },
+    { name = "pytest-xdist", marker = "extra == 'dev'" },
+    { name = "ruff", marker = "extra == 'dev'" },
+    { name = "ty", marker = "extra == 'dev'" },
 ]
 provides-extras = ["dev", "docs"]
 

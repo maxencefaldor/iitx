@@ -17,7 +17,6 @@ keywords = [
 	"phi",
 	"consciousness",
 	"causation",
-	"cause-effect-structure",
 	"jax",
 ]
 classifiers = [
@@ -29,21 +28,21 @@ classifiers = [
 	"Topic :: Scientific/Engineering",
 ]
 dependencies = [
-	"jax>=0.11.0",
-	"jaxtyping>=0.3.2",
-	"numpy>=2.3.0",
-	"pot>=0.9.5",
+	"jax",
+	"jaxtyping",
+	"numpy",
+	"pot",
 ]
 
 [project.optional-dependencies]
 dev = [
-	"beartype>=0.21.0",
-	"chex>=0.1.90",
-	"pytest>=8.3.0",
-	"pytest-cov>=6.0.0",
-	"pytest-xdist>=3.6.0",
-	"ruff>=0.15.0",
-	"ty>=0.0.38",
+	"beartype",
+	"chex",
+	"pytest",
+	"pytest-cov",
+	"pytest-xdist",
+	"ruff",
+	"ty",
 ]
 docs = [
 	"mkdocs",
