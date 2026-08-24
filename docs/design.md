@@ -79,9 +79,9 @@ All containers are frozen `dataclasses` registered with
 @register_dataclass
 @dataclass(frozen=True)
 class System:
-	tpm: Float[Array, "Q Q"]        # p(next | prev); rows = prev state, little-endian mixed radix
-	cm: Bool[Array, "n n"]          # connectivity, cm[i, j] = unit i inputs to unit j
-	shape: tuple[int, ...]          # static: per-unit alphabet sizes (q_1, …, q_n)
+	tpm: Float[Array, "Q Q"]  # p(next | prev); rows = prev state, little-endian mixed radix
+	cm: Bool[Array, "n n"]  # connectivity, cm[i, j] = unit i inputs to unit j
+	shape: tuple[int, ...]  # static: per-unit alphabet sizes (q_1, …, q_n)
 ```
 
 - `tpm[prev, next]` is the **interventional** transition probability
@@ -182,7 +182,7 @@ A **measure** is a frozen dataclass implementing the `Measure` protocol:
 ```python
 class Measure(Protocol):
 	def phi(self, system: System, state: Int[Array, "n"]) -> Float[Array, ""]: ...
-	def analyze(self, system: System, state: Int[Array, "n"]) -> Any: ...   # full result pytree
+	def analyze(self, system: System, state: Int[Array, "n"]) -> Any: ...  # full result pytree
 ```
 
 `phi` is the headline scalar (φ_s for IIT 4.0, Φ for IIT 3.0 — each measure documents
@@ -194,10 +194,11 @@ The two shipped measures are configurations over shared components:
 @register_dataclass
 @dataclass(frozen=True)
 class IIT4(Measure):
-	mechanism_partitions: str = "all"       # Θ(M, Z), Eq. 38
-	system_partitions: str = "set_uni_bi"   # Θ(S) with direction flags
+	mechanism_partitions: str = "all"  # Θ(M, Z), Eq. 38
+	system_partitions: str = "set_uni_bi"  # Θ(S) with direction flags
 	precision: float = 1e-13
 	# comparator is the generalized intrinsic difference; fixed by the theory version
+
 
 @register_dataclass
 @dataclass(frozen=True)

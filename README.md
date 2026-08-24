@@ -45,10 +45,18 @@ from iitx.measures import iit4
 from iitx.system import System
 
 # The standard 3-unit example (OR, COPY, XOR), as a state-by-node TPM.
-tpm = jnp.asarray([
-	[0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [1.0, 0.0, 1.0], [1.0, 0.0, 0.0],
-	[1.0, 1.0, 0.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 0.0],
-])
+tpm = jnp.asarray(
+	[
+		[0.0, 0.0, 0.0],
+		[0.0, 0.0, 1.0],
+		[1.0, 0.0, 1.0],
+		[1.0, 0.0, 0.0],
+		[1.0, 1.0, 0.0],
+		[1.0, 1.0, 1.0],
+		[1.0, 1.0, 1.0],
+		[1.0, 1.0, 0.0],
+	]
+)
 system = System.from_state_by_node(tpm)
 state = jnp.asarray([1, 0, 0])
 

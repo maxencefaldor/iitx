@@ -152,16 +152,18 @@ Study of https://github.com/maxencefaldor/cax for engineering standard only — 
 
     ```python
     def test_life_jit_init() -> None:
-        """Test that Life can be instantiated under jax.jit."""
-        @jax.jit
-        def init_life() -> Life:
-            rngs = nnx.Rngs(0)
-            ...
-            return Life(birth=birth, survival=survival, rngs=rngs)
-        try:
-            init_life()
-        except Exception as e:
-            pytest.fail(f"Life instantiation failed under jit: {e}")
+    	"""Test that Life can be instantiated under jax.jit."""
+
+    	@jax.jit
+    	def init_life() -> Life:
+    		rngs = nnx.Rngs(0)
+    		...
+    		return Life(birth=birth, survival=survival, rngs=rngs)
+
+    	try:
+    		init_life()
+    	except Exception as e:
+    		pytest.fail(f"Life instantiation failed under jit: {e}")
     ```
   - *Invariants where they exist*: sandpile mass conservation
     (`jnp.allclose(total_before, total_after)`), color-space round-trips.
@@ -235,10 +237,14 @@ Study of https://github.com/maxencefaldor/cax for engineering standard only — 
   ```python
   @nnx.jit(static_argnames=("num_steps", "input_in_axis", "sow"))
   def __call__(self, state, input=None, *, num_steps=1, input_in_axis=None, sow=False):
-      ...
-      state_axes = nnx.StateAxes({nnx.Intermediate: 0, ...: nnx.Carry})
-      state = nnx.scan(step_fn, in_axes=(state_axes, nnx.Carry, input_in_axis),
-                       out_axes=nnx.Carry, length=num_steps)(self, state, input)
+  	...
+  	state_axes = nnx.StateAxes({nnx.Intermediate: 0, ...: nnx.Carry})
+  	state = nnx.scan(
+  		step_fn,
+  		in_axes=(state_axes, nnx.Carry, input_in_axis),
+  		out_axes=nnx.Carry,
+  		length=num_steps,
+  	)(self, state, input)
   ```
 
   Trajectory capture uses `sow(nnx.Intermediate, "state", next_state)` +

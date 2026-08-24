@@ -238,9 +238,9 @@ nothing finer.
   @jax.tree_util.register_dataclass
   @dataclasses.dataclass(frozen=True)
   class System:
-      tpm: jax.Array                                   # data leaf
-      state: jax.Array                                 # data leaf
-      n: int = dataclasses.field(metadata=dict(static=True))  # static / cache key
+  	tpm: jax.Array  # data leaf
+  	state: jax.Array  # data leaf
+  	n: int = dataclasses.field(metadata=dict(static=True))  # static / cache key
   ```
 - `flax.struct.dataclass` / `flax.struct.PyTreeNode` (`pytree_node=False` for static
   fields, `.replace()` for updates,

@@ -131,12 +131,12 @@ Key results (Marshall 2018): 3 XOR gates + COPY delays — micro Φ = 0.25 (firs
 **The micro→macro mapping should be a first-class, declarative object**, separate from any network/subsystem class — a pure specification that transforms TPMs:
 
 ```python
-@dataclass(frozen=True)          # pytree with static fields
+@dataclass(frozen=True)  # pytree with static fields
 class Macro:
-    partition: tuple[tuple[int, ...], ...]   # micro units per macro unit / box
-    grouping:  tuple[...] | None             # per-unit state map g_j (coarse-grain)
-    outputs:   tuple[tuple[int, ...], ...] | None  # per-box output units (black-box)
-    steps:     int = 1                       # temporal grain τ
+	partition: tuple[tuple[int, ...], ...]  # micro units per macro unit / box
+	grouping: tuple[...] | None  # per-unit state map g_j (coarse-grain)
+	outputs: tuple[tuple[int, ...], ...] | None  # per-box output units (black-box)
+	steps: int = 1  # temporal grain τ
 ```
 
 with the two transforms as **pure functions on TPMs**:
