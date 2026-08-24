@@ -78,7 +78,9 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"**/*.ipynb" = ["B007", "B905", "F811", "RUF005", "RUF059"]
+# Notebooks are narrative, not API surface: imports appear mid-document by design and
+# helper functions explain themselves in the prose.
+"**/*.ipynb" = ["B007", "B905", "D", "E402", "F811", "RUF005", "RUF059"]
 
 [tool.ruff.format]
 indent-style = "tab"
