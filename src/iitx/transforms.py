@@ -26,9 +26,9 @@ outputs, τ) are static structure.
 
 import math
 
+import jax
 import jax.numpy as jnp
 import numpy as np
-from jaxtyping import Array, Int
 
 from iitx.states import all_states, radix_weights
 from iitx.system import System, node_tpms
@@ -80,8 +80,8 @@ def coarse_grain_state(
 	system: System,
 	partition: tuple[tuple[int, ...], ...],
 	groupings: tuple[tuple[int, ...], ...],
-	state: Int[Array, " n"],
-) -> Int[Array, " k"]:
+	state: jax.Array,
+) -> jax.Array:
 	"""Map a micro state to its macro state under a coarse-graining.
 
 	Args:
@@ -176,9 +176,7 @@ def black_box(
 	return System.from_node_tpms(tuple(macro_factors))
 
 
-def black_box_state(
-	outputs: tuple[tuple[int, ...], ...], state: Int[Array, " n"]
-) -> Int[Array, " k"]:
+def black_box_state(outputs: tuple[tuple[int, ...], ...], state: jax.Array) -> jax.Array:
 	"""Map a micro state to its black-box macro state (the outputs' projection).
 
 	Args:

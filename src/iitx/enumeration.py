@@ -18,12 +18,11 @@ from collections.abc import Iterator
 from itertools import combinations, product
 
 import numpy as np
-from jaxtyping import Bool, Int
 
 __all__ = ["set_partitions", "subsets", "system_cuts"]
 
 
-def subsets(n: int, *, nonempty: bool = False) -> Bool[np.ndarray, "num_subsets n"]:
+def subsets(n: int, *, nonempty: bool = False) -> np.ndarray:
 	"""Enumerate subsets of ``n`` units as masks, in powerset order.
 
 	Powerset order is increasing subset size, and lexicographic by unit index within a
@@ -91,9 +90,7 @@ def set_partitions(units: list[int], *, nontrivial: bool = False) -> Iterator[li
 	yield from iterator
 
 
-def system_cuts(
-	n: int, candidate: tuple[int, ...] | None = None
-) -> tuple[Bool[np.ndarray, "num_cuts n n"], Int[np.ndarray, " num_cuts"]]:
+def system_cuts(n: int, candidate: tuple[int, ...] | None = None) -> tuple[np.ndarray, np.ndarray]:
 	"""Enumerate the IIT 4.0 system partitions of a candidate system, as cut matrices.
 
 	This is PyPhi's ``SET_UNI/BI`` scheme (the canonical IIT 4.0 system partitions,
@@ -146,9 +143,9 @@ def system_cuts(
 def mechanism_partitions(
 	mechanism: tuple[int, ...], purview: tuple[int, ...], n: int
 ) -> tuple[
-	Int[np.ndarray, "P n"],
-	Int[np.ndarray, "P n"],
-	Int[np.ndarray, " P"],
+	np.ndarray,
+	np.ndarray,
+	np.ndarray,
 ]:
 	"""Enumerate the disintegrating partitions Θ(M, Z) of a mechanism-purview pair.
 
@@ -232,7 +229,7 @@ def mechanism_partitions(
 
 def bipartitions(
 	mechanism: tuple[int, ...], purview: tuple[int, ...], n: int
-) -> tuple[Bool[np.ndarray, "P n"], Bool[np.ndarray, "P n"]]:
+) -> tuple[np.ndarray, np.ndarray]:
 	"""Enumerate the IIT 3.0 mechanism-purview bipartitions.
 
 	PyPhi's ``BI`` scheme (the canonical IIT 3.0 mechanism partitions, Oizumi et al.
@@ -281,7 +278,7 @@ def bipartitions(
 	return np.stack(part_mechanism), np.stack(part_purview)
 
 
-def directed_bipartitions(n: int) -> Bool[np.ndarray, "num_cuts n n"]:
+def directed_bipartitions(n: int) -> np.ndarray:
 	"""Enumerate the IIT 3.0 system cuts as cut matrices.
 
 	A cut severs the connections *from* one nonempty proper subset *to* its complement

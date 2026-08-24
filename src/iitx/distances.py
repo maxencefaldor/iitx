@@ -20,14 +20,13 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import ot
-from jaxtyping import Array, Float
 
 from iitx.states import all_states
 
 __all__ = ["emd", "hamming_matrix", "intrinsic_difference", "marginal_emd"]
 
 
-def intrinsic_difference(p: Float[Array, " Q"], q: Float[Array, " Q"]) -> Float[Array, ""]:
+def intrinsic_difference(p: jax.Array, q: jax.Array) -> jax.Array:
 	"""Compute the intrinsic difference between two distributions.
 
 	The intrinsic difference is ``max_v p[v] * log2(p[v] / q[v])`` — the unique measure
@@ -55,7 +54,7 @@ def intrinsic_difference(p: Float[Array, " Q"], q: Float[Array, " Q"]) -> Float[
 	return jnp.max(jnp.where(p > 0.0, p * jnp.log2(safe_p / safe_q), 0.0))
 
 
-def hamming_matrix(shape: tuple[int, ...]) -> Float[np.ndarray, "Q Q"]:
+def hamming_matrix(shape: tuple[int, ...]) -> np.ndarray:
 	"""Build the generalized Hamming ground metric over a system's states.
 
 	The distance between two states is the number of units whose values differ — the sum
@@ -76,9 +75,7 @@ def hamming_matrix(shape: tuple[int, ...]) -> Float[np.ndarray, "Q Q"]:
 	return (states[:, None, :] != states[None, :, :]).sum(axis=-1).astype(np.float64)
 
 
-def emd(
-	p: Float[Array, " Q"], q: Float[Array, " Q"], cost: Float[Array, "Q Q"]
-) -> Float[Array, ""]:
+def emd(p: jax.Array, q: jax.Array, cost: jax.Array) -> jax.Array:
 	"""Compute the exact earth mover's distance between two distributions.
 
 	This is the Wasserstein-1 distance: the minimum cost of transporting the probability
@@ -125,9 +122,7 @@ def emd(
 	)
 
 
-def marginal_emd(
-	p: Float[Array, " Q"], q: Float[Array, " Q"], shape: tuple[int, ...]
-) -> Float[Array, ""]:
+def marginal_emd(p: jax.Array, q: jax.Array, shape: tuple[int, ...]) -> jax.Array:
 	"""Compute the EMD between two *product* distributions from their unit marginals.
 
 	For product distributions, the Hamming-metric EMD separates across units into a sum of

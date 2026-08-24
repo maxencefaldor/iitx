@@ -28,7 +28,6 @@ import dataclasses
 import jax
 import jax.numpy as jnp
 import numpy as np
-from jaxtyping import Array, Bool, Float, Int
 
 from iitx.direction import Direction
 from iitx.enumeration import mechanism_partitions, subsets, system_cuts
@@ -58,10 +57,10 @@ class CauseEffectState:
 
 	"""
 
-	cause_state: Int[Array, " n"]
-	effect_state: Int[Array, " n"]
-	phi_cause: Float[Array, ""]
-	phi_effect: Float[Array, ""]
+	cause_state: jax.Array
+	effect_state: jax.Array
+	phi_cause: jax.Array
+	phi_effect: jax.Array
 
 
 @jax.tree_util.register_dataclass
@@ -82,18 +81,18 @@ class SystemPhi:
 
 	"""
 
-	phi: Float[Array, ""]
-	normalized_phi: Float[Array, ""]
-	phi_cause: Float[Array, ""]
-	phi_effect: Float[Array, ""]
-	cut_index: Int[Array, ""]
+	phi: jax.Array
+	normalized_phi: jax.Array
+	phi_cause: jax.Array
+	phi_effect: jax.Array
+	cut_index: jax.Array
 	cause_effect_state: CauseEffectState
 
 
 def cause_effect_state(
 	system: System,
-	state: Int[Array, " n"],
-	candidate: Bool[Array, " n"] | None = None,
+	state: jax.Array,
+	candidate: jax.Array | None = None,
 ) -> CauseEffectState:
 	"""Find the maximal cause-effect state a candidate system specifies.
 
@@ -132,7 +131,7 @@ def cause_effect_state(
 
 def system_phi(
 	system: System,
-	state: Int[Array, " n"],
+	state: jax.Array,
 	candidate: tuple[int, ...] | None = None,
 ) -> SystemPhi:
 	"""Compute the system integrated information φ_s of a candidate system.
@@ -185,7 +184,7 @@ def system_phi(
 		_likelihood(cause_factors, state, candidate_mask), ces.cause_state, system.shape
 	)
 
-	def evaluate(cut: Bool[Array, "n n"]) -> tuple[Float[Array, ""], Float[Array, ""]]:
+	def evaluate(cut: jax.Array) -> tuple[jax.Array, jax.Array]:
 		partitioned_effect = _at(
 			purview_distribution(
 				repertoire(
@@ -234,10 +233,10 @@ def system_phi(
 
 
 def _backward_factors(
-	factors: tuple[Float[Array, "*shape q"], ...],
-	state: Int[Array, " n"],
-	candidate: Bool[Array, " n"],
-) -> tuple[Float[Array, "*shape q"], ...]:
+	factors: tuple[jax.Array, ...],
+	state: jax.Array,
+	candidate: jax.Array,
+) -> tuple[jax.Array, ...]:
 	"""Build the backward (cause) conditionals of Eq. 4.
 
 	The prior background state is unknown, so it is causally marginalized under its
@@ -282,10 +281,10 @@ def _backward_factors(
 
 
 def _likelihood(
-	factors: tuple[Float[Array, "*shape q"], ...],
-	state: Int[Array, " n"],
-	candidate: Bool[Array, " n"],
-) -> Float[Array, "*shape"]:
+	factors: tuple[jax.Array, ...],
+	state: jax.Array,
+	candidate: jax.Array,
+) -> jax.Array:
 	"""Compute the forward probability of the candidate's current state, per prior state.
 
 	``prod_{i in candidate} p(s_i | z)`` as a function of the prior state ``z`` — the
@@ -307,10 +306,10 @@ def _likelihood(
 
 
 def _effect_information(
-	effect_factors: tuple[Float[Array, "*shape q"], ...],
-	state: Int[Array, " n"],
-	candidate: Bool[Array, " n"],
-) -> Float[Array, "*shape"]:
+	effect_factors: tuple[jax.Array, ...],
+	state: jax.Array,
+	candidate: jax.Array,
+) -> jax.Array:
 	"""Compute the intrinsic effect information of every candidate effect state (Eq. 5).
 
 	Args:
@@ -328,9 +327,7 @@ def _effect_information(
 	return constrained * _log2_ratio(constrained, _unconstrained_effect(effect_factors, candidate))
 
 
-def _unconstrained_effect(
-	effect_factors: tuple[Float[Array, "*shape q"], ...], candidate: Bool[Array, " n"]
-) -> Float[Array, "*shape"]:
+def _unconstrained_effect(effect_factors: tuple[jax.Array, ...], candidate: jax.Array) -> jax.Array:
 	"""Compute the unconstrained effect probability of every effect state (Eq. 6).
 
 	This is the uniform average over interventions on the prior state of the *joint*
@@ -360,10 +357,10 @@ def _unconstrained_effect(
 
 
 def _cause_information(
-	cause_factors: tuple[Float[Array, "*shape q"], ...],
-	state: Int[Array, " n"],
-	candidate: Bool[Array, " n"],
-) -> Float[Array, "*shape"]:
+	cause_factors: tuple[jax.Array, ...],
+	state: jax.Array,
+	candidate: jax.Array,
+) -> jax.Array:
 	"""Compute the intrinsic cause information of every candidate cause state (Eq. 7).
 
 	Selectivity is the backward (Bayes) probability; informativeness is the forward
@@ -385,9 +382,7 @@ def _cause_information(
 	return selectivity * _log2_ratio(forward, jnp.mean(forward))
 
 
-def _specify(
-	information: Float[Array, "*shape"], shape: tuple[int, ...]
-) -> tuple[Int[Array, " n"], Float[Array, ""]]:
+def _specify(information: jax.Array, shape: tuple[int, ...]) -> tuple[jax.Array, jax.Array]:
 	"""Select the state maximizing an intrinsic-information tensor.
 
 	Ties are broken by first occurrence in little-endian state order, the library's
@@ -407,9 +402,7 @@ def _specify(
 	return state, flat[index]
 
 
-def _at(
-	full: Float[Array, "*shape"], state: Int[Array, " n"], shape: tuple[int, ...]
-) -> Float[Array, ""]:
+def _at(full: jax.Array, state: jax.Array, shape: tuple[int, ...]) -> jax.Array:
 	"""Read a full-shape tensor at a state vector.
 
 	Args:
@@ -425,7 +418,7 @@ def _at(
 	return jnp.ravel(full, order="F")[index]
 
 
-def _log2_ratio(p: Float[Array, "..."], q: Float[Array, "..."]) -> Float[Array, "..."]:
+def _log2_ratio(p: jax.Array, q: jax.Array) -> jax.Array:
 	"""Compute ``log2(p / q)`` with guarded gradients at ``p = 0``.
 
 	Args:
@@ -442,7 +435,7 @@ def _log2_ratio(p: Float[Array, "..."], q: Float[Array, "..."]) -> Float[Array, 
 	return jnp.where(p > 0.0, jnp.where(q > 0.0, jnp.log2(safe_p / safe_q), jnp.inf), 0.0)
 
 
-def _q(x: Float[Array, "..."]) -> Float[Array, "..."]:
+def _q(x: jax.Array) -> jax.Array:
 	"""Quantize to this measure's precision (see :func:`iitx.measures.common.quantize`).
 
 	Args:
@@ -480,20 +473,20 @@ class Distinctions:
 
 	"""
 
-	exists: Bool[Array, " D"]
-	phi: Float[Array, " D"]
-	mechanism: Bool[Array, "D n"]
-	cause_purview: Bool[Array, "D n"]
-	effect_purview: Bool[Array, "D n"]
-	cause_state: Int[Array, "D n"]
-	effect_state: Int[Array, "D n"]
-	phi_cause: Float[Array, " D"]
-	phi_effect: Float[Array, " D"]
+	exists: jax.Array
+	phi: jax.Array
+	mechanism: jax.Array
+	cause_purview: jax.Array
+	effect_purview: jax.Array
+	cause_state: jax.Array
+	effect_state: jax.Array
+	phi_cause: jax.Array
+	phi_effect: jax.Array
 
 
 def distinctions(
 	system: System,
-	state: Int[Array, " n"],
+	state: jax.Array,
 	candidate: tuple[int, ...] | None = None,
 ) -> Distinctions:
 	"""Unfold the causal distinctions of a candidate system.
@@ -691,7 +684,7 @@ def _static_mask(n: int, units: tuple[int, ...]) -> np.ndarray:
 	return mask
 
 
-def _smear_axes(x: Float[Array, "..."], keep: Bool[Array, " n"]) -> Float[Array, "..."]:
+def _smear_axes(x: jax.Array, keep: jax.Array) -> jax.Array:
 	"""Replace each state axis outside ``keep`` by its uniform mean, keeping dimensions.
 
 	Args:
@@ -708,9 +701,7 @@ def _smear_axes(x: Float[Array, "..."], keep: Bool[Array, " n"]) -> Float[Array,
 	return out
 
 
-def _at_prev(
-	x: Float[Array, "..."], state: Int[Array, " n"], shape: tuple[int, ...]
-) -> Float[Array, "..."]:
+def _at_prev(x: jax.Array, state: jax.Array, shape: tuple[int, ...]) -> jax.Array:
 	"""Index the first ``n`` (state) axes of a tensor at a state vector.
 
 	Args:
@@ -730,19 +721,19 @@ def _at_prev(
 
 def _purview_phi(
 	direction: Direction,
-	mechanism: Bool[Array, " n"],
+	mechanism: jax.Array,
 	mechanism_bitmask: int,
-	purview: Bool[Array, " n"],
-	co_mechanism: Int[Array, "P n"],
-	co_purview: Int[Array, "P n"],
-	severed: Int[Array, " P"],
-	ok: Bool[Array, " P"],
-	conditional_tables: tuple[Float[Array, "B q"], ...],
-	marginal_tables: Float[Array, "n B *shape"],
-	smear_tables: tuple[Float[Array, "B *shape q"], ...],
-	specified: Int[Array, " n"],
+	purview: jax.Array,
+	co_mechanism: jax.Array,
+	co_purview: jax.Array,
+	severed: jax.Array,
+	ok: jax.Array,
+	conditional_tables: tuple[jax.Array, ...],
+	marginal_tables: jax.Array,
+	smear_tables: tuple[jax.Array, ...],
+	specified: jax.Array,
 	shape: tuple[int, ...],
-) -> tuple[Float[Array, ""], Bool[Array, ""], Int[Array, " n"]]:
+) -> tuple[jax.Array, jax.Array, jax.Array]:
 	"""Evaluate one mechanism-purview pair in one direction.
 
 	Computes the intrinsic information of every purview state, the φ of every
@@ -802,7 +793,7 @@ def _purview_phi(
 		unconstrained = joint.mean(axis=tuple(range(n)))
 		information = selectivity * _log2_ratio(value, unconstrained)
 
-		def partitioned(row: Int[Array, " n"]) -> Float[Array, "*shape"]:
+		def partitioned(row: jax.Array) -> jax.Array:
 			return _outer(
 				[
 					jnp.where(
@@ -830,7 +821,7 @@ def _purview_phi(
 		num_states = jnp.prod(jnp.where(purview, jnp.asarray(shape), 1))
 		information = selectivity * _log2_ratio(value, total / num_states)
 
-		def partitioned(row: Int[Array, " n"]) -> Float[Array, "*shape"]:
+		def partitioned(row: jax.Array) -> jax.Array:
 			out = jnp.ones(shape, dtype=marginal_tables.dtype)
 			for u in range(n):
 				out = out * jnp.where(
@@ -870,7 +861,7 @@ def _purview_phi(
 	return mip_phi[index], congruent, state
 
 
-def _outer(vectors: list[Float[Array, " q"]], shape: tuple[int, ...]) -> Float[Array, "*shape"]:
+def _outer(vectors: list[jax.Array], shape: tuple[int, ...]) -> jax.Array:
 	"""Build the outer product of per-unit vectors as a full-shape tensor.
 
 	Args:
@@ -902,8 +893,8 @@ class Relations:
 
 	"""
 
-	sum_phi: Float[Array, ""]
-	count: Int[Array, ""]
+	sum_phi: jax.Array
+	count: jax.Array
 
 
 @jax.tree_util.register_dataclass
@@ -922,7 +913,7 @@ class PhiStructure:
 	system: SystemPhi
 	distinctions: Distinctions
 	relations: Relations
-	big_phi: Float[Array, ""]
+	big_phi: jax.Array
 
 
 def relations(found: Distinctions, ces: CauseEffectState, shape: tuple[int, ...]) -> Relations:
@@ -991,7 +982,7 @@ def relations(found: Distinctions, ces: CauseEffectState, shape: tuple[int, ...]
 
 def phi_structure(
 	system: System,
-	state: Int[Array, " n"],
+	state: jax.Array,
 	candidate: tuple[int, ...] | None = None,
 ) -> PhiStructure:
 	"""Unfold the Φ-structure of a candidate system.

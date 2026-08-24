@@ -1,12 +1,12 @@
 """Numerical conventions shared by the measures."""
 
+import jax
 import jax.numpy as jnp
-from jaxtyping import Array, Float
 
 __all__ = ["quantize"]
 
 
-def quantize(x: Float[Array, ...], precision: float) -> Float[Array, ...]:
+def quantize(x: jax.Array, precision: float) -> jax.Array:
 	"""Quantize values to a measure's precision before comparison.
 
 	Every selection (minimum partition, maximal purview, specified state) compares

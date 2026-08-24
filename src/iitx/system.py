@@ -17,7 +17,6 @@ import math
 import jax
 import jax.numpy as jnp
 import numpy as np
-from jaxtyping import Array, Bool, Float, Num
 
 from iitx.states import all_states
 
@@ -53,9 +52,9 @@ class System:
 
 	"""
 
-	tpm: Float[Array, "Q Q"]
+	tpm: jax.Array
 	shape: tuple[int, ...] = dataclasses.field(metadata={"static": True})
-	cm: Bool[Array, "n n"] | None = None
+	cm: jax.Array | None = None
 
 	@property
 	def n(self) -> int:
@@ -69,7 +68,7 @@ class System:
 
 	@classmethod
 	def from_node_tpms(
-		cls, node_tpms: tuple[Float[Array, "*shape q"], ...], cm: Bool[Array, "n n"] | None = None
+		cls, node_tpms: tuple[jax.Array, ...], cm: jax.Array | None = None
 	) -> System:
 		"""Build a system from per-unit conditional distributions.
 
@@ -105,9 +104,7 @@ class System:
 		return cls(tpm=math.prod(factors[1:], start=factors[0]), shape=shape, cm=cm)
 
 	@classmethod
-	def from_state_by_node(
-		cls, tpm: Float[Array, "Q n"], cm: Bool[Array, "n n"] | None = None
-	) -> System:
+	def from_state_by_node(cls, tpm: jax.Array, cm: jax.Array | None = None) -> System:
 		"""Build a binary system from a state-by-node matrix.
 
 		The state-by-node form is PyPhi's most common input: ``tpm[u, i]`` is the
@@ -143,7 +140,7 @@ class System:
 		)
 
 
-def connectivity(system: System) -> Bool[Array, "n n"]:
+def connectivity(system: System) -> jax.Array:
 	"""Return the system's connectivity matrix, resolving ``None`` to fully connected.
 
 	Args:
@@ -161,7 +158,7 @@ def connectivity(system: System) -> Bool[Array, "n n"]:
 
 def node_tpms(
 	system: System, *, check_independence: bool = True, tolerance: float | None = None
-) -> tuple[Float[Array, "*shape q"], ...]:
+) -> tuple[jax.Array, ...]:
 	"""Derive the per-unit conditional distributions of a system.
 
 	This is the *factored view* that mechanism-level IIT requires: unit ``i``'s array holds
@@ -293,7 +290,7 @@ def _tolerance(dtype: np.dtype) -> float:
 	return float(np.sqrt(np.finfo(dtype).eps))
 
 
-def _marginal_node_tpms(system: System) -> tuple[Num[Array, "*shape q"], ...]:
+def _marginal_node_tpms(system: System) -> tuple[jax.Array, ...]:
 	"""Marginalize the state-by-state TPM into per-unit conditionals, without checking.
 
 	Args:

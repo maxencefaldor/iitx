@@ -22,7 +22,6 @@ import dataclasses
 import jax
 import jax.numpy as jnp
 import numpy as np
-from jaxtyping import Array, Bool, Float, Int
 
 from iitx.direction import Direction
 from iitx.distances import emd, hamming_matrix, marginal_emd
@@ -61,15 +60,15 @@ class Concepts:
 
 	"""
 
-	exists: Bool[Array, " D"]
-	phi: Float[Array, " D"]
-	mechanism: Bool[Array, "D n"]
-	cause_purview: Bool[Array, "D n"]
-	effect_purview: Bool[Array, "D n"]
-	cause_repertoire: Float[Array, "D Q"]
-	effect_repertoire: Float[Array, "D Q"]
-	phi_cause: Float[Array, " D"]
-	phi_effect: Float[Array, " D"]
+	exists: jax.Array
+	phi: jax.Array
+	mechanism: jax.Array
+	cause_purview: jax.Array
+	effect_purview: jax.Array
+	cause_repertoire: jax.Array
+	effect_repertoire: jax.Array
+	phi_cause: jax.Array
+	phi_effect: jax.Array
 
 
 @jax.tree_util.register_dataclass
@@ -88,14 +87,14 @@ class SystemPhi:
 
 	"""
 
-	phi: Float[Array, ""]
-	cut_index: Int[Array, ""]
+	phi: jax.Array
+	cut_index: jax.Array
 	ces: Concepts
 
 
 def ces(
 	system: System,
-	state: Int[Array, " n"],
+	state: jax.Array,
 	candidate: tuple[int, ...] | None = None,
 ) -> Concepts:
 	"""Compute the cause-effect structure of a candidate system.
@@ -119,7 +118,7 @@ def ces(
 
 def system_phi(
 	system: System,
-	state: Int[Array, " n"],
+	state: jax.Array,
 	candidate: tuple[int, ...] | None = None,
 ) -> SystemPhi:
 	"""Compute big Φ of a candidate system.
@@ -148,7 +147,7 @@ def system_phi(
 
 	cuts = jnp.asarray(_candidate_cuts(n, units))
 
-	def cut_distance(cut: Bool[Array, "n n"]) -> Float[Array, ""]:
+	def cut_distance(cut: jax.Array) -> jax.Array:
 		partitioned = _ces(sever(factors, cut), state, candidate_mask, shape)
 		return _ces_distance(whole, partitioned, null_cause, null_effect, shape)
 
@@ -177,9 +176,9 @@ def _candidate_cuts(n: int, units: tuple[int, ...]) -> np.ndarray:
 
 
 def _ces(
-	factors: tuple[Float[Array, "*shape q"], ...],
-	state: Int[Array, " n"],
-	candidate: Bool[np.ndarray, " n"],
+	factors: tuple[jax.Array, ...],
+	state: jax.Array,
+	candidate: np.ndarray,
 	shape: tuple[int, ...],
 ) -> Concepts:
 	"""Compute the cause-effect structure from background-conditioned factors.
@@ -338,8 +337,8 @@ def _ces(
 
 
 def _null_repertoires(
-	factors: tuple[Float[Array, "*shape q"], ...], shape: tuple[int, ...]
-) -> tuple[Float[Array, " Q"], Float[Array, " Q"]]:
+	factors: tuple[jax.Array, ...], shape: tuple[int, ...]
+) -> tuple[jax.Array, jax.Array]:
 	"""Build the null concept's expanded repertoires.
 
 	The null concept is the unconstrained cause-effect repertoire of the candidate:
@@ -366,10 +365,10 @@ def _null_repertoires(
 def _ces_distance(
 	whole: Concepts,
 	partitioned: Concepts,
-	null_cause: Float[Array, " Q"],
-	null_effect: Float[Array, " Q"],
+	null_cause: jax.Array,
+	null_effect: jax.Array,
 	shape: tuple[int, ...],
-) -> Float[Array, ""]:
+) -> jax.Array:
 	"""Compute the extended EMD between two cause-effect structures (Text S2).
 
 	The transport problem in concept space: φ mass moves between the structures'
@@ -403,11 +402,11 @@ def _ces_distance(
 	unique_partitioned = partitioned.exists & ~matched
 
 	def concept_distance(
-		cause_a: Float[Array, " Q"],
-		effect_a: Float[Array, " Q"],
-		cause_b: Float[Array, " Q"],
-		effect_b: Float[Array, " Q"],
-	) -> Float[Array, ""]:
+		cause_a: jax.Array,
+		effect_a: jax.Array,
+		cause_b: jax.Array,
+		effect_b: jax.Array,
+	) -> jax.Array:
 		return emd(cause_a, cause_b, cost) + emd(effect_a, effect_b, cost)
 
 	pairwise = jax.vmap(
@@ -467,7 +466,7 @@ def _mask(n: int, units: tuple[int, ...]) -> np.ndarray:
 	return mask
 
 
-def _normalize(x: Float[Array, "*shape"]) -> Float[Array, "*shape"]:
+def _normalize(x: jax.Array) -> jax.Array:
 	"""Normalize a non-negative tensor to sum 1, mapping the zero tensor to itself.
 
 	Args:

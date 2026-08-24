@@ -19,14 +19,14 @@ encodes little-endian indexing, as in PyPhi's ``convert`` module. The state inde
 state vector is :func:`ravel_state`.
 """
 
+import jax
 import jax.numpy as jnp
 import numpy as np
-from jaxtyping import Array, Int
 
 __all__ = ["all_states", "radix_weights", "ravel_state", "unravel_state"]
 
 
-def radix_weights(shape: tuple[int, ...]) -> Int[np.ndarray, " n"]:
+def radix_weights(shape: tuple[int, ...]) -> np.ndarray:
 	"""Return the place values of the little-endian mixed-radix encoding.
 
 	The state index of a state ``s`` is ``sum(s[i] * weights[i])``.
@@ -43,7 +43,7 @@ def radix_weights(shape: tuple[int, ...]) -> Int[np.ndarray, " n"]:
 	return np.concatenate([np.ones(1, dtype=np.int64), np.cumprod(sizes)[:-1]])
 
 
-def ravel_state(state: Int[Array, " n"], shape: tuple[int, ...]) -> Int[Array, ""]:
+def ravel_state(state: jax.Array, shape: tuple[int, ...]) -> jax.Array:
 	"""Convert a state vector to its little-endian mixed-radix state index.
 
 	Args:
@@ -57,7 +57,7 @@ def ravel_state(state: Int[Array, " n"], shape: tuple[int, ...]) -> Int[Array, "
 	return jnp.sum(state * jnp.asarray(radix_weights(shape)))
 
 
-def unravel_state(index: Int[Array, ""], shape: tuple[int, ...]) -> Int[Array, " n"]:
+def unravel_state(index: jax.Array, shape: tuple[int, ...]) -> jax.Array:
 	"""Convert a little-endian mixed-radix state index to its state vector.
 
 	Args:
@@ -71,7 +71,7 @@ def unravel_state(index: Int[Array, ""], shape: tuple[int, ...]) -> Int[Array, "
 	return (index // jnp.asarray(radix_weights(shape))) % jnp.asarray(shape)
 
 
-def all_states(shape: tuple[int, ...]) -> Int[np.ndarray, "Q n"]:
+def all_states(shape: tuple[int, ...]) -> np.ndarray:
 	"""Enumerate every state of a system, in canonical (little-endian) order.
 
 	Row ``k`` of the result is the state whose state index is ``k``, so this table is the

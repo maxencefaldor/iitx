@@ -30,8 +30,8 @@ uniform factor onto itself.
   the effect side (not uniform in general).
 """
 
+import jax
 import jax.numpy as jnp
-from jaxtyping import Array, Bool, Float, Int
 
 from iitx.direction import Direction
 
@@ -39,12 +39,12 @@ __all__ = ["condition", "purview_distribution", "repertoire", "sever"]
 
 
 def repertoire(
-	node_tpms: tuple[Float[Array, "*shape q"], ...],
-	state: Int[Array, " n"],
-	mechanism: Bool[Array, " n"],
-	purview: Bool[Array, " n"],
+	node_tpms: tuple[jax.Array, ...],
+	state: jax.Array,
+	mechanism: jax.Array,
+	purview: jax.Array,
 	direction: Direction,
-) -> Float[Array, "*shape"]:
+) -> jax.Array:
 	"""Compute the repertoire a mechanism in a state specifies over a purview.
 
 	Implements Eqs. S2-S9 of Oizumi et al. (2014) Text S2 — equivalently the product
@@ -99,9 +99,7 @@ def repertoire(
 	return joint
 
 
-def purview_distribution(
-	full: Float[Array, "*shape"], purview: Bool[Array, " n"]
-) -> Float[Array, "*shape"]:
+def purview_distribution(full: jax.Array, purview: jax.Array) -> jax.Array:
 	"""Recover the bare purview distribution from a full-shape repertoire.
 
 	Sums out the uniform non-purview axes (keeping dimensions, so the shape is stable
@@ -123,7 +121,7 @@ def purview_distribution(
 	return out
 
 
-def _smear(x: Float[Array, "*shape"], mask: Bool[Array, " n"]) -> Float[Array, "*shape"]:
+def _smear(x: jax.Array, mask: jax.Array) -> jax.Array:
 	"""Replace each non-mask axis of ``x`` by its uniform mean, keeping dimensions.
 
 	This is uniform marginalization in place: after smearing, ``x`` is constant along
@@ -143,9 +141,7 @@ def _smear(x: Float[Array, "*shape"], mask: Bool[Array, " n"]) -> Float[Array, "
 	return out
 
 
-def _uniform(
-	shape: tuple[int, ...], purview: Bool[Array, " n"], dtype: jnp.dtype
-) -> Float[Array, "*shape"]:
+def _uniform(shape: tuple[int, ...], purview: jax.Array, dtype: jnp.dtype) -> jax.Array:
 	"""Build the uniform factor over non-purview axes (ones along purview axes).
 
 	Args:
@@ -163,7 +159,7 @@ def _uniform(
 	return out
 
 
-def _normalize(x: Float[Array, "*shape"]) -> Float[Array, "*shape"]:
+def _normalize(x: jax.Array) -> jax.Array:
 	"""Normalize a non-negative tensor to sum 1, mapping the zero tensor to itself.
 
 	Args:
@@ -179,10 +175,10 @@ def _normalize(x: Float[Array, "*shape"]) -> Float[Array, "*shape"]:
 
 
 def condition(
-	node_tpms: tuple[Float[Array, "*shape q"], ...],
-	state: Int[Array, " n"],
-	candidate: Bool[Array, " n"],
-) -> tuple[Float[Array, "*shape q"], ...]:
+	node_tpms: tuple[jax.Array, ...],
+	state: jax.Array,
+	candidate: jax.Array,
+) -> tuple[jax.Array, ...]:
 	"""Clamp non-candidate previous-state axes of the factors at the current state.
 
 	This is the frozen-background conditioning shared by both theory versions on the
@@ -210,9 +206,7 @@ def condition(
 	return tuple(clamped)
 
 
-def sever(
-	node_tpms: tuple[Float[Array, "*shape q"], ...], cut: Bool[Array, "n n"]
-) -> tuple[Float[Array, "*shape q"], ...]:
+def sever(node_tpms: tuple[jax.Array, ...], cut: jax.Array) -> tuple[jax.Array, ...]:
 	"""Noise the connections a cut severs.
 
 	Severed inputs are uniformly marginalized out of the receiving unit's conditional,

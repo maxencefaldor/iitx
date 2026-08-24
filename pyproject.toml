@@ -29,7 +29,6 @@ classifiers = [
 ]
 dependencies = [
 	"jax",
-	"jaxtyping",
 	"numpy",
 	"pot",
 ]
@@ -68,8 +67,6 @@ ignore = [
 	"D203",  # incorrect-blank-line-before-class
 	"D206",  # docstring-tab-indentation
 	"D213",  # multi-line-summary-second-line
-	"F722",  # forward-annotation-syntax-error (jaxtyping shape annotations)
-	"UP037",  # quoted-annotation (jaxtyping shape annotations are strings, not names)
 	"N803",  # non-lowercase-argument-name (math symbols: M, Z, Q)
 	"N806",  # non-lowercase-variable-in-function
 	"W191",  # tab-indentation

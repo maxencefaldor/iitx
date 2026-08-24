@@ -412,12 +412,13 @@ deviations recorded there; per project decision, maximally modern:
   3.14; PyPhi never shares this environment, so its constraints do not apply).
 - uv-native; hatchling; `src/iitx/` layout; static hand-bumped version; PEP 639 license
   fields; MIT; committed `uv.lock`.
-- Runtime dependencies, floor-pinned: `jax`, `numpy`, `pot`, `jaxtyping`. **No flax**:
+- Runtime dependencies (unversioned; `uv.lock` pins exactly): `jax`, `numpy`, `pot`. **No flax**:
   the core is pure functions + registered dataclasses (P5/P6); NNX buys nothing here.
 - ruff only (line length 100, tabs, cax's rule set incl. `D`, Google docstrings
   everywhere including tests); `ty` with `all = "error"` — and a `ty` CI job.
-- pytest with `filterwarnings = error`; chex + beartype/jaxtyping runtime checks in
-  tests; coverage uploaded; tests mirror `src/` one-to-one.
+- pytest with `filterwarnings = error`; chex available as a dev dependency; coverage
+  uploaded; tests mirror `src/` one-to-one. Shape and dtype contracts live in
+  docstrings (no jaxtyping — the repository stays lean, per project decision).
 - Docs: MkDocs Material + mkdocstrings(google) + mkdocs-jupyter, `strict: true`,
   symlinked `docs/index.md → README.md`, two-line API stubs, numbered Colab notebooks
   (`00_getting_started`, `01_iit4_basics`, `02_reproducing_pyphi`,
