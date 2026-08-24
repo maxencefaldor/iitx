@@ -49,3 +49,15 @@ fastest; `iitx` enumerates in little-endian order, varying unit 0 fastest. Value
 unaffected; the choice among exactly-tied specified states can differ. No golden fixture
 exercises this so far; if one does, the divergence is documented here rather than
 contorting the canonical order.
+
+## 6. PyPhi's macro Φ cuts at the micro level
+
+`MacroSubsystem.cut_indices` returns *micro* indices: when PyPhi computes Φ of a
+coarse-grained or black-boxed system (the `emergence` golden numbers, e.g. macro_network
+micro 0.113889 → macro 0.597212), the system cuts sever micro connections and the
+transform is re-applied to each cut micro TPM. Analyzing the transformed TPM as an
+ordinary system — cutting macro connections — gives a different number (0.86905 for the
+same coarse-graining, which is itself the golden Φ of PyPhi's `macro` fixture network:
+the transforms agree exactly; the *analysis modes* differ). iitx 0.1 ships the
+transforms and the ordinary-system analysis; micro-cut macro analysis belongs to the
+deferred emergence-search design, where this note becomes its specification.
