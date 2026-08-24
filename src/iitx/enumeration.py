@@ -141,3 +141,90 @@ def system_cuts(
 
 	cuts = np.stack(matrices)
 	return cuts, cuts.sum(axis=(1, 2)).astype(np.int64)
+
+
+def mechanism_partitions(
+	mechanism: tuple[int, ...], purview: tuple[int, ...], n: int
+) -> tuple[
+	Int[np.ndarray, "P n"],
+	Int[np.ndarray, "P n"],
+	Int[np.ndarray, " P"],
+]:
+	"""Enumerate the disintegrating partitions Θ(M, Z) of a mechanism-purview pair.
+
+	This is PyPhi's ``ALL`` scheme — the canonical IIT 4.0 mechanism partitions
+	(Albantakis et al. 2023 Eq. 38, from Barbosa et al. 2021): disjoint parts pairing a
+	mechanism block with a purview block, jointly covering both, where a part containing
+	the whole mechanism must have an empty purview (so every partition genuinely
+	disintegrates the pair). Mechanism blocks follow PyPhi's set-partition recursion with
+	an appended empty block; purview blocks are distributed over them in every distinct
+	way.
+
+	The partitioned probability factors per unit, so each partition is encoded by
+	*co-part bitmasks*: for each purview unit, the bitmask of the mechanism block in its
+	part (its only unsevered mechanism inputs), and for each mechanism unit, the bitmask
+	of the purview block in its part. These index the master conditional tables directly.
+
+	Args:
+		mechanism: Units of the mechanism (sorted).
+		purview: Units of the purview (sorted).
+		n: Number of units of the system (bitmask width).
+
+	Returns:
+		A triple of arrays over the ``P`` partitions: ``co_mechanism`` of shape
+		``(P, n)`` — for each purview unit ``j``, the bitmask of its part's mechanism
+		block (rows for units outside the purview are zero); ``co_purview`` of shape
+		``(P, n)`` — for each mechanism unit ``u``, the bitmask of its part's purview
+		block; and the number of connections each partition severs,
+		``sum_i |mechanism_i| * |purview outside part i|``.
+
+	"""
+
+	def bitmask(units: tuple[int, ...] | list[int]) -> int:
+		return sum(1 << unit for unit in units)
+
+	def purview_splits(units: list[int], k: int) -> Iterator[list[list[int]]]:
+		# All ways to split `units` into k labeled, possibly-empty ordered blocks such
+		# that nonempty blocks are disjoint; equivalent to PyPhi's k_partitions plus
+		# distinct permutations with empty padding: every assignment of units to k
+		# labeled blocks, deduplicated by the resulting labeled composition.
+		seen: set[tuple[tuple[int, ...], ...]] = set()
+		for assignment in product(range(k), repeat=len(units)):
+			blocks: list[list[int]] = [[] for _ in range(k)]
+			for unit, block in zip(units, assignment, strict=True):
+				blocks[block].append(unit)
+			key = tuple(tuple(block) for block in blocks)
+			if key not in seen:
+				seen.add(key)
+				yield blocks
+
+	co_mechanism_rows: list[np.ndarray] = []
+	co_purview_rows: list[np.ndarray] = []
+	severed: list[int] = []
+	for blocks in set_partitions(list(mechanism)):
+		mechanism_blocks = [*blocks, []]
+		for purview_blocks in purview_splits(list(purview), len(mechanism_blocks)):
+			# A part keeping the whole mechanism must have an empty purview block.
+			if any(
+				set(mech) == set(mechanism) and purv
+				for mech, purv in zip(mechanism_blocks, purview_blocks, strict=True)
+			):
+				continue
+			co_mechanism = np.zeros(n, dtype=np.int64)
+			co_purview = np.zeros(n, dtype=np.int64)
+			cut = 0
+			for mech, purv in zip(mechanism_blocks, purview_blocks, strict=True):
+				for j in purv:
+					co_mechanism[j] = bitmask(mech)
+				for u in mech:
+					co_purview[u] = bitmask(purv)
+				cut += len(mech) * (len(purview) - len(purv))
+			co_mechanism_rows.append(co_mechanism)
+			co_purview_rows.append(co_purview)
+			severed.append(cut)
+
+	return (
+		np.stack(co_mechanism_rows),
+		np.stack(co_purview_rows),
+		np.asarray(severed, dtype=np.int64),
+	)

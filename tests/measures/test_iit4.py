@@ -10,7 +10,7 @@ import numpy as np
 import pytest
 
 from iitx.enumeration import system_cuts
-from iitx.measures.iit4 import cause_effect_state, system_phi
+from iitx.measures.iit4 import cause_effect_state, distinctions, phi_structure, system_phi
 from iitx.system import System
 from networks import (
 	basic_network,
@@ -158,3 +158,89 @@ class TestTransformations:
 				2 * eps
 			)
 			assert float(gradient[u, v]) == pytest.approx(numeric, abs=1e-4)
+
+
+class TestDistinctions:
+	"""Causal distinctions against golden fixture values."""
+
+	def test_basic_network(self) -> None:
+		"""Test the distinctions of the basic network at (1,0,0).
+
+		Golden: 2 distinctions with total φ_d = 1.0.
+		"""
+		found = distinctions(basic_network(), jnp.asarray([1, 0, 0]))
+		exists = np.asarray(found.exists)
+		assert int(exists.sum()) == 2
+		assert float(np.asarray(found.phi)[exists].sum()) == pytest.approx(1.0, abs=1e-10)
+
+	def test_xor_network(self) -> None:
+		"""Test the distinctions of the XOR network at (0,0,0).
+
+		Golden: 4 distinctions, total φ_d = 2.5; mechanism (0,1) has cause purview
+		(0,1,2) with φ_c = 0.5 and effect purview (2,) with φ_e = 1.0; the full
+		mechanism has φ_c = 1.0 and φ_e = 2.0.
+		"""
+		found = distinctions(xor_network(), jnp.asarray([0, 0, 0]))
+		exists = np.asarray(found.exists)
+		assert int(exists.sum()) == 4
+		assert float(np.asarray(found.phi)[exists].sum()) == pytest.approx(2.5, abs=1e-10)
+
+		by_mechanism = {
+			tuple(np.flatnonzero(np.asarray(found.mechanism)[k])): k for k in np.flatnonzero(exists)
+		}
+		pair = by_mechanism[(0, 1)]
+		assert float(found.phi_cause[pair]) == pytest.approx(0.5, abs=1e-10)
+		assert tuple(np.flatnonzero(np.asarray(found.cause_purview)[pair])) == (0, 1, 2)
+		assert float(found.phi_effect[pair]) == pytest.approx(1.0, abs=1e-10)
+		assert tuple(np.flatnonzero(np.asarray(found.effect_purview)[pair])) == (2,)
+		full = by_mechanism[(0, 1, 2)]
+		assert float(found.phi_cause[full]) == pytest.approx(1.0, abs=1e-10)
+		assert float(found.phi_effect[full]) == pytest.approx(2.0, abs=1e-10)
+
+	def test_paper_network(self) -> None:
+		"""Test the distinctions of the 2014-paper network at (1,0,1).
+
+		Golden (fixture ``fig4``): 4 distinctions, total φ_d = 1.7174433312179418.
+		"""
+		found = distinctions(paper_network(), jnp.asarray([1, 0, 1]))
+		exists = np.asarray(found.exists)
+		assert int(exists.sum()) == 4
+		assert float(np.asarray(found.phi)[exists].sum()) == pytest.approx(
+			1.7174433312179418, abs=1e-10
+		)
+
+
+class TestPhiStructure:
+	"""Φ-structures: relations in aggregate and big Φ."""
+
+	def test_basic_network_has_no_relations(self) -> None:
+		"""Test the basic network's Φ-structure: 0 relations, Φ = Σφ_d = 1.0.
+
+		No unit has the same specified cause and effect value, and the two
+		distinctions' purviews share no unit-state atom, so nothing relates.
+		"""
+		structure = phi_structure(basic_network(), jnp.asarray([1, 0, 0]))
+		assert int(structure.relations.count) == 0
+		assert float(structure.relations.sum_phi) == pytest.approx(0.0, abs=1e-12)
+		assert float(structure.big_phi) == pytest.approx(1.0, abs=1e-10)
+
+	def test_xor_network(self) -> None:
+		"""Test the XOR network's Φ-structure against the golden count and closed form.
+
+		Golden: 15 relations (every nonempty subset of the 4 distinctions relates).
+		By hand: every distinction's atom set is all three units, so the 11 subsets of
+		size ≥ 2 each contribute 3 x min-density = 0.5, and the self-relations
+		contribute 1/6 + 1/6 + 1/6 + 1 — a total of Σφ_r = 7.0 and Φ = 9.5.
+		"""
+		structure = phi_structure(xor_network(), jnp.asarray([0, 0, 0]))
+		assert int(structure.relations.count) == 15
+		assert float(structure.relations.sum_phi) == pytest.approx(7.0, abs=1e-10)
+		assert float(structure.big_phi) == pytest.approx(9.5, abs=1e-10)
+
+	def test_paper_network_relation_count(self) -> None:
+		"""Test the 2014-paper network's relation count at (1,0,1).
+
+		Golden (fixture ``fig4``): 15 relations.
+		"""
+		structure = phi_structure(paper_network(), jnp.asarray([1, 0, 1]))
+		assert int(structure.relations.count) == 15
