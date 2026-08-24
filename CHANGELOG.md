@@ -6,6 +6,10 @@ All notable changes to `iitx` are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-08-25
+
+First release: the exact core, verified against PyPhi.
+
 ### Added
 
 - Study notes on IIT 3.0, IIT 4.0, the intrinsic difference measure, macro-level
@@ -39,3 +43,6 @@ All notable changes to `iitx` are documented here. The format follows
   approximations, explicitly named, converging to the exact quantities.
 - Example notebooks: `00_getting_started` and `01_ascending_phi` — gradient ascent on
   integrated information itself, with emergent Φ-structure.
+
+[Unreleased]: https://github.com/maxencefaldor/iitx/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/maxencefaldor/iitx/releases/tag/v0.1.0

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "iitx"
-version = "0.0.1"
+dynamic = ["version"]
 description = "Integrated Information Theory accelerated in JAX"
 readme = "README.md"
 requires-python = ">=3.14"
@@ -57,6 +57,12 @@ examples = [
 
 [project.urls]
 Homepage = "https://github.com/maxencefaldor/iitx"
+Documentation = "https://maxencefaldor.github.io/iitx"
+Repository = "https://github.com/maxencefaldor/iitx"
+Changelog = "https://github.com/maxencefaldor/iitx/blob/main/CHANGELOG.md"
+
+[tool.hatch.version]
+path = "src/iitx/__init__.py"
 
 [tool.ruff]
 src = ["src", "tests"]
