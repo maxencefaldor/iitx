@@ -1,0 +1,15 @@
+[project]
+name = "iitx-oracle-generate"
+version = "0.1.0"
+description = "Self-contained environment for generating iitx oracle fixtures from PyPhi main (pinned)."
+requires-python = ">=3.14"
+dependencies = [
+    # Primary oracle: PyPhi main @ ce2b2832 (2026-08-15), promoted per
+    # docs/generality.md §oracle. The `emd` extra provides POT, the exact-EMD
+    # backend required by the iit3 preset (REPERTOIRE_DISTANCE / CES = EMD).
+    "pyphi[emd] @ git+https://github.com/wmayner/pyphi.git@ce2b2832",
+]
+
+# This project is an environment, not a package: nothing to build.
+[tool.uv]
+package = false
