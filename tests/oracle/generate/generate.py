@@ -29,7 +29,7 @@ HERE = Path(__file__).resolve().parent
 FIXTURES = HERE.parent / "fixtures"
 
 ORACLE_REF = "ce2b28321686e472650c8bbe118a19cef55ac555"
-PRESETS = {"iit3": "IIT_3_0", "iit4": "IIT_4_0_2023"}
+PRESETS = {"iit3": "IIT_3_0", "iit4": "IIT_4_0_2023", "iit4_2026": "IIT_4_0_2026"}
 SCHEMA_VERSION = 1
 
 

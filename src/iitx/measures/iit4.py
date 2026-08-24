@@ -152,6 +152,7 @@ def system_phi(
 	system: System,
 	state: jax.Array,
 	candidate: tuple[int, ...] | None = None,
+	version: str = "2023",
 ) -> SystemPhi:
 	"""Compute the system integrated information φ_s of a candidate system.
 
@@ -168,11 +169,20 @@ def system_phi(
 		state: Current state of the whole system, shape ``(n,)``.
 		candidate: Units of the candidate system (static, since it fixes the partition
 			table); ``None`` means all units.
+		version: ``"2023"`` (Albantakis et al. 2023, canonical) or ``"2026"`` (Mayner et
+			al. 2026): the 2026 formalism selects the same minimum partition on the same
+			uncapped values, then caps ``phi_s = min(phi_c, phi_e, ii(s))``, where
+			``ii(s)`` is the least, over both directions, of the rectified intrinsic
+			information of the specified state and its rectified surprisal. Static.
 
 	Returns:
 		The system φ analysis at the minimum partition.
 
 	"""
+	if version not in ("2023", "2026"):
+		msg = f'version must be "2023" or "2026", got {version!r}'
+		raise ValueError(msg)
+	units = tuple(range(system.n)) if candidate is None else tuple(sorted(candidate))
 	(
 		pair_phi,
 		phi_cause_z,
@@ -187,10 +197,48 @@ def system_phi(
 
 	index = cut_choice[cause_index, effect_index]
 	phi = pair_phi[index, cause_index, effect_index]
-	normalized = phi / severed[index]
 	phi_cause = phi_cause_z[index, cause_index]
 	phi_effect = phi_effect_z[index, effect_index]
 
+	if version == "2026":
+		# The Eq. 23 cap: the MIP is chosen on the uncapped values above, then
+		# phi_s = min(phi_c, phi_e, ii(s)) with ii(s) from the specified states'
+		# rectified intrinsic information and surprisal.
+		factors = node_tpms(system, check_independence=False)
+		candidate_mask = jnp.asarray(_static_mask(system.n, units))
+		effect_factors = condition(factors, state, candidate_mask)
+		cause_factors = _backward_factors(factors, state, candidate_mask)
+		probability_effect = _at(
+			purview_distribution(
+				repertoire(
+					effect_factors, state, candidate_mask, candidate_mask, Direction.EFFECT
+				),
+				candidate_mask,
+			),
+			ces.effect_state,
+			system.shape,
+		)
+		probability_cause = _at(
+			purview_distribution(
+				repertoire(
+					cause_factors, state, candidate_mask, candidate_mask, Direction.CAUSE
+				),
+				candidate_mask,
+			),
+			ces.cause_state,
+			system.shape,
+		)
+		surprisals = [
+			jnp.where(p > 0.0, -jnp.log2(jnp.where(p > 0.0, p, 1.0)), jnp.inf)
+			for p in (probability_cause, probability_effect)
+		]
+		intrinsic = jnp.minimum(
+			jnp.minimum(jnp.maximum(ces.phi_cause, 0.0), jnp.maximum(ces.phi_effect, 0.0)),
+			jnp.minimum(jnp.maximum(surprisals[0], 0.0), jnp.maximum(surprisals[1], 0.0)),
+		)
+		phi = jnp.minimum(phi, intrinsic)
+
+	normalized = phi / severed[index]
 	signed = jnp.where(strong, phi, 0.0)
 	return SystemPhi(
 		phi=jnp.maximum(signed, 0.0),
