@@ -214,96 +214,107 @@ def _ces(
 	# Unconstrained effect marginal of each unit (the expansion filler).
 	unconstrained = tuple(factor.mean(axis=tuple(range(n))) for factor in factors)
 
-	rows = []
-	for mechanism_row in mechanism_table:
-		mechanism_units = tuple(int(u) for u in np.flatnonzero(mechanism_row))
-		valid_mechanism = bool(np.all(~mechanism_row | candidate))
-		if not valid_mechanism:
-			rows.append(None)
+	# One compiled body per mechanism-size class: mechanisms of equal size share their
+	# bipartition-table shapes, so a lax.scan over class members reuses one trace where
+	# a Python loop would unroll 2**n - 1 bodies.
+	row_of = {tuple(row.tolist()): index for index, row in enumerate(mechanism_table)}
+	results: list[tuple[jax.Array, ...] | None] = [None] * len(mechanism_table)
+	purviews = jnp.asarray(purview_table)
+	sizes = jnp.asarray(purview_table.sum(axis=1))
+	for size in range(1, n + 1):
+		members = [
+			row for row in mechanism_table if row.sum() == size and bool(np.all(~row | candidate))
+		]
+		if not members:
 			continue
 
-		# Padded bipartition tables across the purviews of this mechanism.
-		tables = [
-			bipartitions(mechanism_units, tuple(int(u) for u in np.flatnonzero(purview_row)), n)
-			for purview_row in purview_table
-		]
-		max_partitions = max(len(entry[0]) for entry in tables)
-		part_mechanism = np.zeros((len(purview_table), max_partitions, n), dtype=bool)
-		part_purview = np.zeros_like(part_mechanism)
-		valid = np.zeros((len(purview_table), max_partitions), dtype=bool)
-		for k, (mask_m, mask_z) in enumerate(tables):
-			part_mechanism[k, : len(mask_m)] = mask_m
-			part_purview[k, : len(mask_m)] = mask_z
-			valid[k, : len(mask_m)] = True
+		part_mechanism_class = []
+		part_purview_class = []
+		valid_class = []
+		for member in members:
+			mechanism_units = tuple(int(u) for u in np.flatnonzero(member))
+			tables = [
+				bipartitions(mechanism_units, tuple(int(u) for u in np.flatnonzero(purview_row)), n)
+				for purview_row in purview_table
+			]
+			max_partitions = max(len(entry[0]) for entry in tables)
+			part_mechanism = np.zeros((len(purview_table), max_partitions, n), dtype=bool)
+			part_purview = np.zeros_like(part_mechanism)
+			valid = np.zeros((len(purview_table), max_partitions), dtype=bool)
+			for k, (mask_m, mask_z) in enumerate(tables):
+				part_mechanism[k, : len(mask_m)] = mask_m
+				part_purview[k, : len(mask_m)] = mask_z
+				valid[k, : len(mask_m)] = True
+			part_mechanism_class.append(part_mechanism)
+			part_purview_class.append(part_purview)
+			valid_class.append(valid)
 
-		side = {}
-		for direction in Direction:
+		def member_row(
+			mechanism: jax.Array,
+			part_mechanism: jax.Array,
+			part_purview: jax.Array,
+			valid: jax.Array,
+		) -> tuple[jax.Array, ...]:
+			side = {}
+			for direction in Direction:
 
-			def purview_phi(
-				purview: jax.Array,
-				first_mechanism: jax.Array,
-				first_purview: jax.Array,
-				ok: jax.Array,
-				direction: Direction = direction,
-				mechanism_row: np.ndarray = mechanism_row,
-			) -> tuple[jax.Array, jax.Array]:
-				mechanism = jnp.asarray(mechanism_row)
-				whole = repertoire(factors, state, mechanism, purview, direction)
+				def purview_phi(
+					purview: jax.Array,
+					first_mechanism: jax.Array,
+					first_purview: jax.Array,
+					ok: jax.Array,
+					direction: Direction = direction,
+					mechanism: jax.Array = mechanism,
+				) -> tuple[jax.Array, jax.Array]:
+					whole = repertoire(factors, state, mechanism, purview, direction)
 
-				def partition_phi(m1: jax.Array, z1: jax.Array, ok_one: jax.Array) -> jax.Array:
-					part = _normalize(
-						repertoire(factors, state, m1, z1, direction)
-						* repertoire(factors, state, mechanism & ~m1, purview & ~z1, direction)
-					)
-					if direction is Direction.CAUSE:
-						distance = emd(
-							jnp.ravel(whole, order="F"), jnp.ravel(part, order="F"), cost
+					def partition_phi(m1: jax.Array, z1: jax.Array, ok_one: jax.Array) -> jax.Array:
+						part = _normalize(
+							repertoire(factors, state, m1, z1, direction)
+							* repertoire(factors, state, mechanism & ~m1, purview & ~z1, direction)
 						)
-					else:
-						distance = marginal_emd(
-							jnp.ravel(whole, order="F"), jnp.ravel(part, order="F"), shape
-						)
-					return jnp.where(ok_one, quantize(distance, PRECISION), jnp.inf)
+						if direction is Direction.CAUSE:
+							distance = emd(
+								jnp.ravel(whole, order="F"), jnp.ravel(part, order="F"), cost
+							)
+						else:
+							distance = marginal_emd(
+								jnp.ravel(whole, order="F"), jnp.ravel(part, order="F"), shape
+							)
+						return jnp.where(ok_one, quantize(distance, PRECISION), jnp.inf)
 
-				phis = jax.vmap(partition_phi)(first_mechanism, first_purview, ok)
-				return jnp.min(phis), jnp.ravel(whole, order="F")
+					phis = jax.vmap(partition_phi)(first_mechanism, first_purview, ok)
+					return jnp.min(phis), jnp.ravel(whole, order="F")
 
-			phi_z, reps = jax.vmap(purview_phi)(
-				jnp.asarray(purview_table),
-				jnp.asarray(part_mechanism),
-				jnp.asarray(part_purview),
-				jnp.asarray(valid),
-			)
-			phi_z = jnp.where(inside, phi_z, -jnp.inf)
-			# Core purview: maximal φ, ties to the larger purview, then first in order.
-			sizes = jnp.asarray(purview_table.sum(axis=1))
-			best = quantize(phi_z, PRECISION) >= quantize(phi_z, PRECISION).max()
-			key_size = jnp.where(best, sizes, -1)
-			tied = best & (key_size >= key_size.max())
-			purview_index = jnp.argmax(tied)
-			side[direction] = (
-				phi_z[purview_index],
-				jnp.asarray(purview_table)[purview_index],
-				reps[purview_index],
-			)
+				phi_z, reps = jax.vmap(purview_phi)(purviews, part_mechanism, part_purview, valid)
+				phi_z = jnp.where(inside, phi_z, -jnp.inf)
+				# Core purview: maximal φ, ties to the larger purview, then first in order.
+				best = quantize(phi_z, PRECISION) >= quantize(phi_z, PRECISION).max()
+				key_size = jnp.where(best, sizes, -1)
+				tied = best & (key_size >= key_size.max())
+				purview_index = jnp.argmax(tied)
+				side[direction] = (
+					phi_z[purview_index],
+					purviews[purview_index],
+					reps[purview_index],
+				)
 
-		phi_cause, cause_purview, cause_rep = side[Direction.CAUSE]
-		phi_effect, effect_purview, effect_rep = side[Direction.EFFECT]
+			phi_cause, cause_purview, cause_rep = side[Direction.CAUSE]
+			phi_effect, effect_purview, effect_rep = side[Direction.EFFECT]
 
-		# Expand the effect repertoire: replace the uniform filler on non-purview axes
-		# with the unconstrained effect marginals (the cause filler is already uniform).
-		effect_full = jnp.reshape(effect_rep, shape, order="F")
-		for i in range(n):
-			scale = (shape[i] * unconstrained[i]).reshape((1,) * i + (-1,) + (1,) * (n - 1 - i))
-			effect_full = jnp.where(effect_purview[i], effect_full, effect_full * scale)
-		effect_rep = jnp.ravel(effect_full, order="F")
+			# Expand the effect repertoire: replace the uniform filler on non-purview axes
+			# with the unconstrained effect marginals (the cause filler is already uniform).
+			effect_full = jnp.reshape(effect_rep, shape, order="F")
+			for i in range(n):
+				scale = (shape[i] * unconstrained[i]).reshape((1,) * i + (-1,) + (1,) * (n - 1 - i))
+				effect_full = jnp.where(effect_purview[i], effect_full, effect_full * scale)
+			effect_rep = jnp.ravel(effect_full, order="F")
 
-		phi = jnp.minimum(phi_cause, phi_effect)
-		rows.append(
-			(
+			phi = jnp.minimum(phi_cause, phi_effect)
+			return (
 				quantize(phi, PRECISION) > 0.0,
 				phi,
-				jnp.asarray(mechanism_row),
+				mechanism,
 				cause_purview,
 				effect_purview,
 				cause_rep,
@@ -311,7 +322,22 @@ def _ces(
 				phi_cause,
 				phi_effect,
 			)
+
+		def body(carry: None, xs: tuple[jax.Array, ...]) -> tuple[None, tuple[jax.Array, ...]]:
+			return carry, member_row(*xs)
+
+		_, outputs = jax.lax.scan(
+			body,
+			None,
+			(
+				jnp.asarray(np.stack(members)),
+				jnp.asarray(np.stack(part_mechanism_class)),
+				jnp.asarray(np.stack(part_purview_class)),
+				jnp.asarray(np.stack(valid_class)),
+			),
 		)
+		for position, member in enumerate(members):
+			results[row_of[tuple(member.tolist())]] = tuple(leaf[position] for leaf in outputs)
 
 	num_states = int(np.prod(shape))
 
@@ -330,7 +356,9 @@ def _ces(
 
 	stacked = [
 		jnp.stack(column)
-		for column in zip(*[row if row is not None else zeros_row() for row in rows], strict=True)
+		for column in zip(
+			*[row if row is not None else zeros_row() for row in results], strict=True
+		)
 	]
 	return Concepts(
 		exists=stacked[0],

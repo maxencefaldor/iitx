@@ -23,7 +23,7 @@ import ot
 
 from iitx.states import all_states
 
-__all__ = ["emd", "hamming_matrix", "intrinsic_difference", "marginal_emd"]
+__all__ = ["emd", "hamming_matrix", "intrinsic_difference", "marginal_emd", "sinkhorn_emd"]
 
 
 def intrinsic_difference(p: jax.Array, q: jax.Array) -> jax.Array:
@@ -84,11 +84,13 @@ def emd(p: jax.Array, q: jax.Array, cost: jax.Array) -> jax.Array:
 	transportation linear program is solved on the host by POT's network simplex via
 	:func:`jax.pure_callback`.
 
-	Composes with ``jit`` and ``vmap`` (batch members are solved sequentially on the
-	host). Does **not** compose with ``grad``: JAX raises on differentiating a pure
-	callback, which is the designed behaviour — exact EMD has no tensor-program gradient,
-	and the differentiable alternatives are explicitly named approximations
-	(``docs/design.md`` §8).
+	Composes with ``jit`` and ``vmap``: under ``vmap`` (however deeply nested) the whole
+	batch crosses to the host in **one** callback and the linear programs are solved in a
+	loop there — one device-host round-trip per enumeration stage, not one per distance,
+	which is what keeps the IIT 3.0 pipeline viable on accelerators. Does **not** compose
+	with ``grad``: JAX raises on differentiating a pure callback, which is the designed
+	behaviour — exact EMD has no tensor-program gradient, and the differentiable
+	alternatives are explicitly named approximations (``docs/design.md`` §8).
 
 	Args:
 		p: Source distribution over state indices, shape ``(Q,)``; must sum to 1.
@@ -101,14 +103,20 @@ def emd(p: jax.Array, q: jax.Array, cost: jax.Array) -> jax.Array:
 	"""
 
 	def solve(p: np.ndarray, q: np.ndarray, cost: np.ndarray) -> np.ndarray:
-		return np.asarray(
-			ot.emd2(
-				np.ascontiguousarray(p, dtype=np.float64),
-				np.ascontiguousarray(q, dtype=np.float64),
-				np.ascontiguousarray(cost, dtype=np.float64),
-			),
-			dtype=p.dtype,
-		)
+		# Under vmap, batch axes arrive stacked (expand_dims), with size-1 axes on the
+		# unmapped arguments; broadcast, then solve the whole batch in one host visit.
+		batch = np.broadcast_shapes(p.shape[:-1], q.shape[:-1], cost.shape[:-2])
+		flat_p = np.broadcast_to(p, (*batch, p.shape[-1])).reshape(-1, p.shape[-1])
+		flat_q = np.broadcast_to(q, (*batch, q.shape[-1])).reshape(-1, q.shape[-1])
+		flat_cost = np.broadcast_to(cost, (*batch, *cost.shape[-2:])).reshape(-1, *cost.shape[-2:])
+		out = np.empty(len(flat_p), dtype=p.dtype)
+		for k in range(len(flat_p)):
+			out[k] = ot.emd2(
+				np.ascontiguousarray(flat_p[k], dtype=np.float64),
+				np.ascontiguousarray(flat_q[k], dtype=np.float64),
+				np.ascontiguousarray(flat_cost[k], dtype=np.float64),
+			)
+		return out.reshape(batch)
 
 	return jnp.asarray(
 		jax.pure_callback(
@@ -117,7 +125,7 @@ def emd(p: jax.Array, q: jax.Array, cost: jax.Array) -> jax.Array:
 			p,
 			q,
 			cost,
-			vmap_method="sequential",
+			vmap_method="expand_dims",
 		)
 	)
 
@@ -152,3 +160,60 @@ def marginal_emd(p: jax.Array, q: jax.Array, shape: tuple[int, ...]) -> jax.Arra
 		marginal_q = jnp.reshape(q, shape, order="F").sum(axis=axes)
 		total += jnp.abs(marginal_p - marginal_q).sum() / 2.0
 	return total
+
+
+def sinkhorn_emd(
+	p: jax.Array,
+	q: jax.Array,
+	cost: jax.Array,
+	epsilon: float = 0.01,
+	iterations: int = 200,
+) -> jax.Array:
+	"""Approximate the earth mover's distance by entropic regularization (Sinkhorn).
+
+	**This is a named approximation, not the EMD** (``docs/design.md`` §13): the
+	entropy-regularized transport cost overestimates smooth couplings and converges to
+	:func:`emd` only as ``epsilon`` → 0 (at the price of more iterations for
+	convergence). Its value is that it is a pure, fixed-iteration tensor program: it
+	runs on the accelerator and **differentiates** (by unrolling), which the exact EMD's
+	host linear program cannot. Use it for gradients and throughput; use :func:`emd`
+	for oracle-exact values.
+
+	The implementation is the standard log-domain Sinkhorn iteration, numerically
+	stable for small ``epsilon``.
+
+	Args:
+		p: Source distribution over state indices, shape ``(Q,)``; must sum to 1.
+		q: Target distribution over state indices, shape ``(Q,)``; must sum to 1.
+		cost: Ground metric between states, shape ``(Q, Q)``.
+		epsilon: Entropic regularization strength (in units of the ground metric).
+		iterations: Number of Sinkhorn iterations (fixed, so the program is static).
+			Convergence slows as ``epsilon`` shrinks — scale iterations like
+			``O(1 / epsilon)``; an unconverged run *underestimates* how close the value
+			is to the exact EMD.
+
+	Returns:
+		Scalar approximate transport cost: the transport part ``<plan, cost>`` of the
+		regularized optimum (the entropy term is excluded, so the value tends to the
+		true EMD from above as ``epsilon`` → 0).
+
+	"""
+	# Guard empty support: log(0) is -inf, which the softmin handles, but fully zero
+	# marginals would poison the plan; the guarded logs keep gradients clean.
+	log_p = jnp.where(p > 0.0, jnp.log(jnp.where(p > 0.0, p, 1.0)), -jnp.inf)
+	log_q = jnp.where(q > 0.0, jnp.log(jnp.where(q > 0.0, q, 1.0)), -jnp.inf)
+	scaled = -cost / epsilon
+
+	def step(
+		carry: tuple[jax.Array, jax.Array], _: None
+	) -> tuple[tuple[jax.Array, jax.Array], None]:
+		f, g = carry
+		f = epsilon * (log_p - jax.nn.logsumexp(scaled + g[None, :] / epsilon, axis=1))
+		g = epsilon * (log_q - jax.nn.logsumexp(scaled + f[:, None] / epsilon, axis=0))
+		return (f, g), None
+
+	(f, g), _ = jax.lax.scan(step, (jnp.zeros_like(p), jnp.zeros_like(q)), None, length=iterations)
+	log_plan = scaled + f[:, None] / epsilon + g[None, :] / epsilon
+	# Rebuild the plan from the potentials; masked states carry zero mass.
+	plan = jnp.where((p[:, None] > 0.0) & (q[None, :] > 0.0), jnp.exp(log_plan), 0.0)
+	return jnp.sum(plan * cost)

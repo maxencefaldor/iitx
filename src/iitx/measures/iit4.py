@@ -39,12 +39,14 @@ __all__ = [
 	"CauseEffectState",
 	"Complex",
 	"Distinctions",
+	"PartitionPhis",
 	"PhiStructure",
 	"Relations",
 	"SystemPhi",
 	"cause_effect_state",
 	"complexes",
 	"distinctions",
+	"partition_phis",
 	"phi_structure",
 	"relations",
 	"system_phi",
@@ -171,6 +173,131 @@ def system_phi(
 		The system φ analysis at the minimum partition.
 
 	"""
+	(
+		pair_phi,
+		phi_cause_z,
+		phi_effect_z,
+		severed,
+		cut_choice,
+		cause_index,
+		effect_index,
+		ces,
+		strong,
+	) = _system_tables(system, state, candidate)
+
+	index = cut_choice[cause_index, effect_index]
+	phi = pair_phi[index, cause_index, effect_index]
+	normalized = phi / severed[index]
+	phi_cause = phi_cause_z[index, cause_index]
+	phi_effect = phi_effect_z[index, effect_index]
+
+	signed = jnp.where(strong, phi, 0.0)
+	return SystemPhi(
+		phi=jnp.maximum(signed, 0.0),
+		signed_phi=signed,
+		normalized_phi=jnp.maximum(jnp.where(strong, normalized, 0.0), 0.0),
+		phi_cause=jnp.where(strong, phi_cause, 0.0),
+		phi_effect=jnp.where(strong, phi_effect, 0.0),
+		cut_index=index,
+		cause_effect_state=ces,
+	)
+
+
+@jax.tree_util.register_dataclass
+@dataclasses.dataclass(frozen=True)
+class PartitionPhis:
+	"""Per-partition signed φ values at the resolved specified states.
+
+	The raw material behind the minimum-partition selection, exposed for relaxations
+	and landscape analysis (:mod:`iitx.relax`).
+
+	Attributes:
+		phi: Signed ``min(phi_cause, phi_effect)`` of every partition, shape ``(P,)``.
+		phi_cause: Cause-side signed φ per partition, shape ``(P,)``.
+		phi_effect: Effect-side signed φ per partition, shape ``(P,)``.
+		severed: Connections severed by each partition (the normalization), shape
+			``(P,)``.
+		cause_effect_state: The resolved maximal cause-effect state.
+
+	"""
+
+	phi: jax.Array
+	phi_cause: jax.Array
+	phi_effect: jax.Array
+	severed: jax.Array
+	cause_effect_state: CauseEffectState
+
+
+def partition_phis(
+	system: System,
+	state: jax.Array,
+	candidate: tuple[int, ...] | None = None,
+) -> PartitionPhis:
+	"""Evaluate every system partition at the resolved specified states.
+
+	The partitions are the canonical table of :func:`iitx.enumeration.system_cuts` for
+	this candidate; the specified states are resolved exactly as in
+	:func:`system_phi` (ii-maximal, then φ-maximal, then oracle order).
+
+	Args:
+		system: The system.
+		state: Current state of the whole system, shape ``(n,)``.
+		candidate: Units of the candidate system (static); ``None`` means all units.
+
+	Returns:
+		The per-partition signed φ values, sides, and normalizations.
+
+	"""
+	(
+		pair_phi,
+		phi_cause_z,
+		phi_effect_z,
+		severed,
+		_cut_choice,
+		cause_index,
+		effect_index,
+		ces,
+		_strong,
+	) = _system_tables(system, state, candidate)
+	return PartitionPhis(
+		phi=pair_phi[:, cause_index, effect_index],
+		phi_cause=phi_cause_z[:, cause_index],
+		phi_effect=phi_effect_z[:, effect_index],
+		severed=severed,
+		cause_effect_state=ces,
+	)
+
+
+def _system_tables(
+	system: System,
+	state: jax.Array,
+	candidate: tuple[int, ...] | None,
+) -> tuple[
+	jax.Array,
+	jax.Array,
+	jax.Array,
+	jax.Array,
+	jax.Array,
+	jax.Array,
+	jax.Array,
+	CauseEffectState,
+	jax.Array,
+]:
+	"""Compute the per-cut, per-state φ tables and resolve the specified states.
+
+	Args:
+		system: The system.
+		state: Current state, shape ``(n,)``.
+		candidate: Units of the candidate system (static), or ``None`` for all.
+
+	Returns:
+		``(pair_phi, phi_cause_z, phi_effect_z, severed, cut_choice, cause_index,
+		effect_index, cause_effect_state, strong)`` — the per-cut φ table over
+		specified-state pairs, the per-cut per-state side tables, the severed-edge
+		counts, the per-pair minimum-partition choice, the resolved flat state indices,
+		the resolved specification, and the strong-connectivity flag.
+
+	"""
 	units = tuple(range(system.n)) if candidate is None else tuple(sorted(candidate))
 	candidate_mask = jnp.asarray(_static_mask(system.n, units))
 	cuts, severed = system_cuts(system.n, units)
@@ -266,27 +393,22 @@ def system_phi(
 		phi_effect=information_effect[effect_index],
 	)
 
-	index = cut_choice[cause_index, effect_index]
-	phi = mip_phi[cause_index, effect_index]
-	normalized = pair_normalized[index, cause_index, effect_index]
-	phi_cause = phi_cause_z[index, cause_index]
-	phi_effect = phi_effect_z[index, effect_index]
-
 	# A candidate that is not strongly connected is null by definition; a single-unit
 	# candidate additionally needs a self-loop.
 	strong = strongly_connected(connectivity(system), candidate_mask)
 	if len(units) == 1:
 		strong = strong & connectivity(system)[units[0], units[0]]
 
-	signed = jnp.where(strong, phi, 0.0)
-	return SystemPhi(
-		phi=jnp.maximum(signed, 0.0),
-		signed_phi=signed,
-		normalized_phi=jnp.maximum(jnp.where(strong, normalized, 0.0), 0.0),
-		phi_cause=jnp.where(strong, phi_cause, 0.0),
-		phi_effect=jnp.where(strong, phi_effect, 0.0),
-		cut_index=index,
-		cause_effect_state=ces,
+	return (
+		pair_phi,
+		phi_cause_z,
+		phi_effect_z,
+		severed,
+		cut_choice,
+		cause_index,
+		effect_index,
+		ces,
+		strong,
 	)
 
 
@@ -634,94 +756,112 @@ def distinctions(
 	mechanism_table = subsets(n, nonempty=True)
 	purview_table = subsets(n, nonempty=True)
 
-	results = []
-	for mechanism_row in mechanism_table:
-		mechanism_units = tuple(int(u) for u in np.flatnonzero(mechanism_row))
-		mechanism_bitmask = int(sum(1 << u for u in mechanism_units))
-		valid_mechanism = bool(np.all(~mechanism_row | static_candidate))
-		if not valid_mechanism:
-			results.append(None)
+	# One compiled body per mechanism-size class: mechanisms of equal size share their
+	# partition-table shapes exactly, so a lax.scan over the class members reuses one
+	# trace where a Python loop would unroll 2**n - 1 bodies.
+	row_of = {tuple(row.tolist()): index for index, row in enumerate(mechanism_table)}
+	results: list[tuple[jax.Array, ...] | None] = [None] * len(mechanism_table)
+	inside = jnp.asarray(np.all(~purview_table | static_candidate, axis=1))
+	purviews = jnp.asarray(purview_table)
+	for size in range(1, n + 1):
+		members = [
+			row
+			for row in mechanism_table
+			if row.sum() == size and bool(np.all(~row | static_candidate))
+		]
+		if not members:
 			continue
 
-		# Padded partition tables across the purviews of this mechanism.
-		partition_tables = [
-			mechanism_partitions(
-				mechanism_units, tuple(int(u) for u in np.flatnonzero(purview_row)), n
-			)
-			for purview_row in purview_table
-		]
-		max_partitions = max(len(entry[2]) for entry in partition_tables)
-		co_mechanism = np.zeros((len(purview_table), max_partitions, n), dtype=np.int64)
-		co_purview = np.zeros_like(co_mechanism)
-		severed = np.ones((len(purview_table), max_partitions), dtype=np.int64)
-		valid = np.zeros((len(purview_table), max_partitions), dtype=bool)
-		for k, (a, b, s) in enumerate(partition_tables):
-			co_mechanism[k, : len(s)] = a
-			co_purview[k, : len(s)] = b
-			severed[k, : len(s)] = s
-			valid[k, : len(s)] = True
+		stacked_masks = np.stack(members)
+		stacked_bitmasks = (stacked_masks @ (1 << np.arange(n))).astype(np.int32)
+		co_mechanism_class = []
+		co_purview_class = []
+		severed_class = []
+		valid_class = []
+		for member in members:
+			mechanism_units = tuple(int(u) for u in np.flatnonzero(member))
+			tables = [
+				mechanism_partitions(
+					mechanism_units, tuple(int(u) for u in np.flatnonzero(purview_row)), n
+				)
+				for purview_row in purview_table
+			]
+			max_partitions = max(len(entry[2]) for entry in tables)
+			co_mechanism = np.zeros((len(purview_table), max_partitions, n), dtype=np.int32)
+			co_purview = np.zeros_like(co_mechanism)
+			severed = np.ones((len(purview_table), max_partitions), dtype=np.int32)
+			valid = np.zeros((len(purview_table), max_partitions), dtype=bool)
+			for k, (a, b, cut_count) in enumerate(tables):
+				co_mechanism[k, : len(cut_count)] = a
+				co_purview[k, : len(cut_count)] = b
+				severed[k, : len(cut_count)] = cut_count
+				valid[k, : len(cut_count)] = True
+			co_mechanism_class.append(co_mechanism)
+			co_purview_class.append(co_purview)
+			severed_class.append(severed)
+			valid_class.append(valid)
 
-		side = {}
-		for direction in Direction:
-			specified = ces.cause_state if direction is Direction.CAUSE else ces.effect_state
+		def member_row(
+			mechanism_row: jax.Array,
+			mechanism_bitmask: jax.Array,
+			co_mechanism: jax.Array,
+			co_purview: jax.Array,
+			severed: jax.Array,
+			valid: jax.Array,
+		) -> tuple[jax.Array, ...]:
+			side = {}
+			for direction in Direction:
+				specified = ces.cause_state if direction is Direction.CAUSE else ces.effect_state
 
-			def evaluate_purview(
-				purview: jax.Array,
-				co_m: jax.Array,
-				co_p: jax.Array,
-				ncc: jax.Array,
-				ok: jax.Array,
-				direction: Direction = direction,
-				mechanism_row: np.ndarray = mechanism_row,
-				mechanism_bitmask: int = mechanism_bitmask,
-				specified: jax.Array = specified,
-			) -> tuple[jax.Array, jax.Array, jax.Array]:
-				return _purview_phi(
-					direction,
-					jnp.asarray(mechanism_row),
-					mechanism_bitmask,
-					purview,
-					co_m,
-					co_p,
-					ncc,
-					ok,
-					conditional_tables,
-					marginal_tables,
-					smear_tables,
-					specified,
-					shape,
+				def evaluate_purview(
+					purview: jax.Array,
+					co_m: jax.Array,
+					co_p: jax.Array,
+					ncc: jax.Array,
+					ok: jax.Array,
+					direction: Direction = direction,
+					mechanism_row: jax.Array = mechanism_row,
+					mechanism_bitmask: jax.Array = mechanism_bitmask,
+					specified: jax.Array = specified,
+				) -> tuple[jax.Array, jax.Array, jax.Array]:
+					return _purview_phi(
+						direction,
+						mechanism_row,
+						mechanism_bitmask,
+						purview,
+						co_m,
+						co_p,
+						ncc,
+						ok,
+						conditional_tables,
+						marginal_tables,
+						smear_tables,
+						specified,
+						shape,
+					)
+
+				phi_z, congruent, chosen_state = jax.vmap(
+					evaluate_purview, in_axes=(0, 0, 0, 0, 0)
+				)(purviews, co_mechanism, co_purview, severed, valid)
+				phi_z = jnp.where(inside, phi_z, -jnp.inf)
+				best = _q(phi_z) >= _q(phi_z).max()
+				preferred = best & congruent
+				purview_index = jnp.where(preferred.any(), jnp.argmax(preferred), jnp.argmax(best))
+				side[direction] = (
+					phi_z[purview_index],
+					purviews[purview_index],
+					chosen_state[purview_index],
+					preferred.any(),
 				)
 
-			phi_z, congruent, chosen_state = jax.vmap(evaluate_purview, in_axes=(0, 0, 0, 0, 0))(
-				jnp.asarray(purview_table),
-				jnp.asarray(co_mechanism),
-				jnp.asarray(co_purview),
-				jnp.asarray(severed),
-				jnp.asarray(valid),
-			)
-			# Restrict purviews to the candidate.
-			inside = jnp.asarray(np.all(~purview_table | static_candidate, axis=1))
-			phi_z = jnp.where(inside, phi_z, -jnp.inf)
-			best = _q(phi_z) >= _q(phi_z).max()
-			# Among tied purviews, prefer the first whose state is congruent.
-			preferred = best & congruent
-			purview_index = jnp.where(preferred.any(), jnp.argmax(preferred), jnp.argmax(best))
-			side[direction] = (
-				phi_z[purview_index],
-				jnp.asarray(purview_table)[purview_index],
-				chosen_state[purview_index],
-				preferred.any(),
-			)
-
-		phi_cause, cause_purview, cause_state_row, cause_congruent = side[Direction.CAUSE]
-		phi_effect, effect_purview, effect_state_row, effect_congruent = side[Direction.EFFECT]
-		phi_d = jnp.minimum(phi_cause, phi_effect)
-		exists = (_q(phi_d) > 0.0) & cause_congruent & effect_congruent
-		results.append(
-			(
+			phi_cause, cause_purview, cause_state_row, cause_congruent = side[Direction.CAUSE]
+			phi_effect, effect_purview, effect_state_row, effect_congruent = side[Direction.EFFECT]
+			phi_d = jnp.minimum(phi_cause, phi_effect)
+			exists = (_q(phi_d) > 0.0) & cause_congruent & effect_congruent
+			return (
 				exists,
 				jnp.where(exists, phi_d, 0.0),
-				jnp.asarray(mechanism_row),
+				mechanism_row,
 				cause_purview,
 				effect_purview,
 				cause_state_row,
@@ -729,7 +869,24 @@ def distinctions(
 				phi_cause,
 				phi_effect,
 			)
+
+		def body(carry: None, xs: tuple[jax.Array, ...]) -> tuple[None, tuple[jax.Array, ...]]:
+			return carry, member_row(*xs)
+
+		_, outputs = jax.lax.scan(
+			body,
+			None,
+			(
+				jnp.asarray(stacked_masks),
+				jnp.asarray(stacked_bitmasks),
+				jnp.asarray(np.stack(co_mechanism_class)),
+				jnp.asarray(np.stack(co_purview_class)),
+				jnp.asarray(np.stack(severed_class)),
+				jnp.asarray(np.stack(valid_class)),
+			),
 		)
+		for position, member in enumerate(members):
+			results[row_of[tuple(member.tolist())]] = tuple(leaf[position] for leaf in outputs)
 
 	def zeros_row() -> tuple[jax.Array, ...]:
 		return (
@@ -815,7 +972,7 @@ def _at_prev(x: jax.Array, state: jax.Array, shape: tuple[int, ...]) -> jax.Arra
 def _purview_phi(
 	direction: Direction,
 	mechanism: jax.Array,
-	mechanism_bitmask: int,
+	mechanism_bitmask: jax.Array,
 	purview: jax.Array,
 	co_mechanism: jax.Array,
 	co_purview: jax.Array,
@@ -837,7 +994,7 @@ def _purview_phi(
 	Args:
 		direction: Temporal direction. Static.
 		mechanism: Mechanism mask, shape ``(n,)``.
-		mechanism_bitmask: The mechanism as a bitmask. Static.
+		mechanism_bitmask: The mechanism as a bitmask (scalar, traced).
 		purview: Purview mask, shape ``(n,)``.
 		co_mechanism: Per-partition co-part mechanism bitmasks of each purview unit.
 		co_purview: Per-partition co-part purview bitmasks of each mechanism unit.
@@ -867,7 +1024,7 @@ def _purview_phi(
 			[
 				jnp.where(
 					purview[j],
-					conditional_tables[j][mechanism_bitmask],
+					jnp.take(conditional_tables[j], mechanism_bitmask, axis=0),
 					jnp.ones(shape[j]),
 				)
 				for j in range(n)
@@ -879,7 +1036,7 @@ def _purview_phi(
 		joint = jnp.ones(shape + shape, dtype=value.dtype)
 		for j in range(n):
 			aligned = jnp.reshape(
-				smear_tables[j][mechanism_bitmask],
+				jnp.take(smear_tables[j], mechanism_bitmask, axis=0),
 				shape + (1,) * j + (shape[j],) + (1,) * (n - 1 - j),
 			)
 			joint = joint * jnp.where(purview[j], aligned, 1.0)
