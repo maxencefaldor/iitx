@@ -7,6 +7,10 @@ on:
   pull_request:
     paths: ["**.py", "pyproject.toml", "uv.lock", ".github/workflows/tests.yml"]
 
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   tests:
     runs-on: ubuntu-latest
@@ -19,4 +23,4 @@ jobs:
       - name: Install dependencies
         run: uv sync --extra dev --python ${{ matrix.python-version }}
       - name: Run tests
-        run: uv run pytest tests/ --cov=iitx --cov-report=term-missing
+        run: uv run pytest tests/ -n auto --cov=iitx --cov-report=term-missing
