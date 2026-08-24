@@ -105,9 +105,7 @@ def test_iit4_fixture(name: str) -> None:
 		results["sum_phi_d"], abs=ATOL_IIT4
 	)
 	assert int(structure.relations.count) == results["num_relations"]
-	assert float(structure.relations.sum_phi) == pytest.approx(
-		results["sum_phi_r"], abs=ATOL_IIT4
-	)
+	assert float(structure.relations.sum_phi) == pytest.approx(results["sum_phi_r"], abs=ATOL_IIT4)
 	assert float(structure.big_phi) == pytest.approx(results["big_phi"], abs=ATOL_IIT4)
 
 
@@ -137,8 +135,7 @@ def test_iit3_fixture(name: str) -> None:
 		assert float(analysis.ces.phi[k]) == pytest.approx(concept["phi"], abs=ATOL_IIT3)
 		for direction, purview_field in (("cause", "cause_purview"), ("effect", "effect_purview")):
 			purview = tuple(
-				int(u)
-				for u in np.flatnonzero(np.asarray(getattr(analysis.ces, purview_field))[k])
+				int(u) for u in np.flatnonzero(np.asarray(getattr(analysis.ces, purview_field))[k])
 			)
 			assert purview == tuple(concept[direction]["purview"])
 

@@ -10,9 +10,26 @@ All notable changes to `iitx` are documented here. The format follows
 
 - Study notes on IIT 3.0, IIT 4.0, the intrinsic difference measure, macro-level
   analysis, alternative measures, JAX engineering constraints, and the PyPhi reference
-  implementation (`docs/notes/`).
+  implementation (`docs/notes/`), plus a rigorous PyPhi review and a literature review
+  on gradient-based Φ optimization.
 - Design documents: generality checklist (`docs/generality.md`), core design
   (`docs/design.md`), and glossary (`docs/glossary.md`).
-- Package scaffold: Python ≥ 3.14, hatchling, ruff, ty, pytest.
-- Oracle regression harness: pinned PyPhi environments and golden fixtures
+- Package scaffold: Python ≥ 3.14, hatchling, ruff, ty, pytest; runtime dependencies
+  `jax`, `numpy`, `pot`.
+- Core: `System` (state-by-state TPMs over heterogeneous alphabets), little-endian
+  mixed-radix state indexing, canonical enumeration tables, the repertoire algebra with
+  full-shape embedding, and the intrinsic-difference and exact-EMD distances.
+- IIT 4.0 (`iitx.measures.iit4`): φ_s with the directional system partitions,
+  distinctions over the disintegrating partitions, analytic relations, Φ-structures,
+  and recursive complex condensation — differentiable almost everywhere, with golden
+  parity against PyPhi at 1e-9.
+- IIT 3.0 (`iitx.measures.iit3`): concepts, cause-effect structures, big Φ via the
+  extended EMD, and the major complex — with golden parity at the oracle's own
+  precision.
+- Macro transforms (`iitx.transforms`): coarse-graining and black-boxing as pure
+  `System → System` functions.
+- The `Measure` protocol with `IIT3` and `IIT4` measures.
+- Oracle regression harness: pinned PyPhi `main` environment, fixture generator, and
+  golden fixtures for both theory versions including non-binary systems
   (`tests/oracle/`).
+- Documentation: MkDocs Material site with API reference, README, contributing guide.
