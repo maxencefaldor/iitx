@@ -61,7 +61,14 @@ class IIT4:
 	``phi`` is the system integrated information φ_s (existence); ``analyze`` unfolds
 	the full Φ-structure (distinctions, relations, and Φ). Differentiable almost
 	everywhere with respect to the TPM.
+
+	Attributes:
+		version: Theory version — ``"2023"`` (canonical) or ``"2026"`` (the Mayner et
+			al. 2026 intrinsic-information cap on φ_s).
+
 	"""
+
+	version: str = "2023"
 
 	def phi(self, system: System, state: jax.Array) -> jax.Array:
 		"""Compute φ_s.
@@ -75,7 +82,7 @@ class IIT4:
 			:class:`iitx.measures.iit4.SystemPhi`).
 
 		"""
-		return iit4.system_phi(system, state).phi
+		return iit4.system_phi(system, state, version=self.version).phi
 
 	def analyze(self, system: System, state: jax.Array) -> iit4.PhiStructure:
 		"""Unfold the Φ-structure.
@@ -88,7 +95,7 @@ class IIT4:
 			The Φ-structure.
 
 		"""
-		return iit4.phi_structure(system, state)
+		return iit4.phi_structure(system, state, version=self.version)
 
 
 @dataclasses.dataclass(frozen=True)

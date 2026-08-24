@@ -1,0 +1,535 @@
+{
+ "schema_version": 1,
+ "name": "xor",
+ "description": "3-node all-XOR network.",
+ "source": "pyphi.examples.xor_substrate; published: Phi=1.874999 [1.2.1 docs/examples/xor.rst]; phi_s=1.5, sum_phi_d=2.5, 15 relations [feature/iit-4.0 goldens]",
+ "slow": false,
+ "oracle": {
+  "package": "pyphi",
+  "repository": "https://github.com/wmayner/pyphi",
+  "ref": "ce2b28321686e472650c8bbe118a19cef55ac555",
+  "version": "2.1.dev1632+gce2b28321",
+  "preset": "IIT_4_0_2026",
+  "python": "3.14.7"
+ },
+ "conventions": {
+  "state_indexing": "little-endian; unit 0 is the least-significant (fastest-varying) digit; mixed-radix for non-binary alphabets",
+  "tpm": "state-by-state; tpm[i][j] = P(next=j | prev=i); rows and columns little-endian",
+  "repertoires": "flattened over purview units in ascending unit order, little-endian (first purview unit fastest); squeeze then ravel(order='F')",
+  "cm": "cm[i][j] == 1 means directed edge i -> j"
+ },
+ "network": {
+  "n_units": 3,
+  "alphabet": [
+   2,
+   2,
+   2
+  ],
+  "node_labels": [
+   "A",
+   "B",
+   "C"
+  ],
+  "tpm_state_by_state": [
+   [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0
+   ],
+   [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  ],
+  "cm": [
+   [
+    0,
+    1,
+    1
+   ],
+   [
+    1,
+    0,
+    1
+   ],
+   [
+    1,
+    1,
+    0
+   ]
+  ],
+  "state": [
+   0,
+   0,
+   0
+  ]
+ },
+ "results": {
+  "phi_s": 0.0,
+  "normalized_phi": 0.0,
+  "reasons": null,
+  "mip": {
+   "type": "DirectedSetPartition",
+   "parts": [
+    [
+     0
+    ],
+    [
+     1
+    ],
+    [
+     2
+    ]
+   ],
+   "num_connections_cut": 6,
+   "repr_compact": "3 parts: {A,B,C}"
+  },
+  "system_state": {
+   "cause": {
+    "purview": [
+     0,
+     1,
+     2
+    ],
+    "state": [
+     0,
+     0,
+     0
+    ],
+    "intrinsic_information": 1.0
+   },
+   "effect": {
+    "purview": [
+     0,
+     1,
+     2
+    ],
+    "state": [
+     0,
+     0,
+     0
+    ],
+    "intrinsic_information": 2.0
+   }
+  },
+  "num_distinctions": 4,
+  "sum_phi_d": 2.5,
+  "num_relations": 15,
+  "sum_phi_r": 7.0,
+  "big_phi": 9.5,
+  "distinctions": [
+   {
+    "mechanism": [
+     0,
+     1
+    ],
+    "phi": 0.5,
+    "cause": {
+     "phi": 0.5,
+     "purview": [
+      0,
+      1,
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [
+        0
+       ],
+       "purview": [
+        1,
+        2
+       ]
+      },
+      {
+       "mechanism": [
+        1
+       ],
+       "purview": []
+      },
+      {
+       "mechanism": [],
+       "purview": [
+        0
+       ]
+      }
+     ],
+     "purview_state": [
+      0,
+      0,
+      0
+     ],
+     "specified_state": {
+      "state": [
+       0,
+       0,
+       0
+      ],
+      "intrinsic_information": 1.0
+     }
+    },
+    "effect": {
+     "phi": 1.0,
+     "purview": [
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [
+        0,
+        1
+       ],
+       "purview": []
+      },
+      {
+       "mechanism": [],
+       "purview": [
+        2
+       ]
+      }
+     ],
+     "purview_state": [
+      0
+     ],
+     "specified_state": {
+      "state": [
+       0
+      ],
+      "intrinsic_information": 1.0
+     }
+    }
+   },
+   {
+    "mechanism": [
+     0,
+     2
+    ],
+    "phi": 0.5,
+    "cause": {
+     "phi": 0.5,
+     "purview": [
+      0,
+      1,
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [
+        0
+       ],
+       "purview": []
+      },
+      {
+       "mechanism": [
+        2
+       ],
+       "purview": [
+        0,
+        1
+       ]
+      },
+      {
+       "mechanism": [],
+       "purview": [
+        2
+       ]
+      }
+     ],
+     "purview_state": [
+      0,
+      0,
+      0
+     ],
+     "specified_state": {
+      "state": [
+       0,
+       0,
+       0
+      ],
+      "intrinsic_information": 1.0
+     }
+    },
+    "effect": {
+     "phi": 1.0,
+     "purview": [
+      1
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [
+        0,
+        2
+       ],
+       "purview": []
+      },
+      {
+       "mechanism": [],
+       "purview": [
+        1
+       ]
+      }
+     ],
+     "purview_state": [
+      0
+     ],
+     "specified_state": {
+      "state": [
+       0
+      ],
+      "intrinsic_information": 1.0
+     }
+    }
+   },
+   {
+    "mechanism": [
+     1,
+     2
+    ],
+    "phi": 0.5,
+    "cause": {
+     "phi": 0.5,
+     "purview": [
+      0,
+      1,
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [
+        1
+       ],
+       "purview": []
+      },
+      {
+       "mechanism": [
+        2
+       ],
+       "purview": [
+        0,
+        1
+       ]
+      },
+      {
+       "mechanism": [],
+       "purview": [
+        2
+       ]
+      }
+     ],
+     "purview_state": [
+      0,
+      0,
+      0
+     ],
+     "specified_state": {
+      "state": [
+       0,
+       0,
+       0
+      ],
+      "intrinsic_information": 1.0
+     }
+    },
+    "effect": {
+     "phi": 1.0,
+     "purview": [
+      0
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [
+        1,
+        2
+       ],
+       "purview": []
+      },
+      {
+       "mechanism": [],
+       "purview": [
+        0
+       ]
+      }
+     ],
+     "purview_state": [
+      0
+     ],
+     "specified_state": {
+      "state": [
+       0
+      ],
+      "intrinsic_information": 1.0
+     }
+    }
+   },
+   {
+    "mechanism": [
+     0,
+     1,
+     2
+    ],
+    "phi": 1.0,
+    "cause": {
+     "phi": 1.0,
+     "purview": [
+      0,
+      1,
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [
+        0
+       ],
+       "purview": [
+        1,
+        2
+       ]
+      },
+      {
+       "mechanism": [
+        1,
+        2
+       ],
+       "purview": []
+      },
+      {
+       "mechanism": [],
+       "purview": [
+        0
+       ]
+      }
+     ],
+     "purview_state": [
+      0,
+      0,
+      0
+     ],
+     "specified_state": {
+      "state": [
+       0,
+       0,
+       0
+      ],
+      "intrinsic_information": 1.0
+     }
+    },
+    "effect": {
+     "phi": 2.0,
+     "purview": [
+      0,
+      1,
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [
+        0
+       ],
+       "purview": []
+      },
+      {
+       "mechanism": [
+        1,
+        2
+       ],
+       "purview": [
+        0
+       ]
+      },
+      {
+       "mechanism": [],
+       "purview": [
+        1,
+        2
+       ]
+      }
+     ],
+     "purview_state": [
+      0,
+      0,
+      0
+     ],
+     "specified_state": {
+      "state": [
+       0,
+       0,
+       0
+      ],
+      "intrinsic_information": 2.0
+     }
+    }
+   }
+  ]
+ }
+}

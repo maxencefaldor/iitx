@@ -33,8 +33,8 @@ class NetworkSpec:
     description: str
     source: str
     slow: bool = False
-    # Formalisms to generate for this network ("iit3", "iit4").
-    formalisms: tuple[str, ...] = ("iit3", "iit4")
+    # Formalisms to generate for this network ("iit3", "iit4", "iit4_2026").
+    formalisms: tuple[str, ...] = ("iit3", "iit4", "iit4_2026")
     # Emit the full mechanism-level micro-fixture table (all mechanisms x
     # purviews: repertoires + MIPs). Only sensible for small networks.
     mechanism_table: bool = False

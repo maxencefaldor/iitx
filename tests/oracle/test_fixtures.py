@@ -211,3 +211,22 @@ def test_subsets_alignment() -> None:
 	"""Test that fixtures' unit indexing matches the canonical subset table width."""
 	fixture = load("iit4", "basic")
 	assert subsets(fixture["network"]["n_units"]).shape[1] == fixture["network"]["n_units"]
+
+
+@pytest.mark.parametrize("name", names("iit4_2026"))
+def test_iit4_2026_fixture(name: str) -> None:
+	"""Test the IIT 4.0 (2026) capped analysis against an oracle fixture."""
+	fixture = load("iit4_2026", name)
+	system, state = build_system(fixture)
+	results = fixture["results"]
+
+	structure = iit4.phi_structure(system, state, version="2026")
+
+	assert float(structure.system.phi) == pytest.approx(results["phi_s"], abs=ATOL_IIT4)
+	assert float(structure.system.normalized_phi) == pytest.approx(
+		results["normalized_phi"], abs=ATOL_IIT4
+	)
+	exists = np.asarray(structure.distinctions.exists)
+	assert int(exists.sum()) == results["num_distinctions"]
+	assert int(structure.relations.count) == results["num_relations"]
+	assert float(structure.big_phi) == pytest.approx(results["big_phi"], abs=ATOL_IIT4)

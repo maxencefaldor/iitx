@@ -193,7 +193,7 @@ def system_phi(
 		effect_index,
 		ces,
 		strong,
-	) = _system_tables(system, state, candidate)
+	) = _system_tables(system, state, candidate, version)
 
 	index = cut_choice[cause_index, effect_index]
 	phi = pair_phi[index, cause_index, effect_index]
@@ -210,9 +210,7 @@ def system_phi(
 		cause_factors = _backward_factors(factors, state, candidate_mask)
 		probability_effect = _at(
 			purview_distribution(
-				repertoire(
-					effect_factors, state, candidate_mask, candidate_mask, Direction.EFFECT
-				),
+				repertoire(effect_factors, state, candidate_mask, candidate_mask, Direction.EFFECT),
 				candidate_mask,
 			),
 			ces.effect_state,
@@ -220,9 +218,7 @@ def system_phi(
 		)
 		probability_cause = _at(
 			purview_distribution(
-				repertoire(
-					cause_factors, state, candidate_mask, candidate_mask, Direction.CAUSE
-				),
+				repertoire(cause_factors, state, candidate_mask, candidate_mask, Direction.CAUSE),
 				candidate_mask,
 			),
 			ces.cause_state,
@@ -320,6 +316,7 @@ def _system_tables(
 	system: System,
 	state: jax.Array,
 	candidate: tuple[int, ...] | None,
+	version: str = "2023",
 ) -> tuple[
 	jax.Array,
 	jax.Array,
@@ -337,6 +334,9 @@ def _system_tables(
 		system: The system.
 		state: Current state, shape ``(n,)``.
 		candidate: Units of the candidate system (static), or ``None`` for all.
+		version: Theory version; under ``"2026"`` the intrinsic-information cap applies
+			to every specified-state pair *before* tie resolution, as the oracle caps
+			every member of a tie set.
 
 	Returns:
 		``(pair_phi, phi_cause_z, phi_effect_z, severed, cut_choice, cause_index,
@@ -422,8 +422,35 @@ def _system_tables(
 	)
 	mip_phi = jnp.take_along_axis(pair_phi, cut_choice[None], axis=0)[0]  # (Q, Q)
 
+	if version == "2026":
+		# The Eq. 23 cap, per specified-state pair, applied before tie resolution:
+		# ii(s) = min of the rectified intrinsic information and rectified surprisal on
+		# each side (the oracle caps every member of a tie set before comparing).
+		surprisal_cause = jnp.where(
+			selectivity_cause > 0.0,
+			-jnp.log2(jnp.where(selectivity_cause > 0.0, selectivity_cause, 1.0)),
+			jnp.inf,
+		)
+		surprisal_effect = jnp.where(
+			selectivity_effect > 0.0,
+			-jnp.log2(jnp.where(selectivity_effect > 0.0, selectivity_effect, 1.0)),
+			jnp.inf,
+		)
+		cap = jnp.minimum(
+			jnp.minimum(
+				jnp.maximum(information_cause, 0.0)[:, None],
+				jnp.maximum(information_effect, 0.0)[None, :],
+			),
+			jnp.minimum(
+				jnp.maximum(surprisal_cause, 0.0)[:, None],
+				jnp.maximum(surprisal_effect, 0.0)[None, :],
+			),
+		)
+		mip_phi = jnp.minimum(mip_phi, cap)
+
 	# Specified states: ii-maximal on each side, then — the oracle's tie cascade — the
-	# pair with maximal φ_s, then the oracle's state-iteration order.
+	# pair with maximal φ_s (capped under "2026"), then the oracle's state-iteration
+	# order.
 	tied_cause = _q(information_cause) >= _q(information_cause).max()
 	tied_effect = _q(information_effect) >= _q(information_effect).max()
 	allowed = tied_cause[:, None] & tied_effect[None, :]
@@ -1283,6 +1310,7 @@ def phi_structure(
 	system: System,
 	state: jax.Array,
 	candidate: tuple[int, ...] | None = None,
+	version: str = "2023",
 ) -> PhiStructure:
 	"""Unfold the Φ-structure of a candidate system.
 
@@ -1294,12 +1322,14 @@ def phi_structure(
 		system: The system.
 		state: Current state of the whole system, shape ``(n,)``.
 		candidate: Units of the candidate system (static); ``None`` means all units.
+		version: Theory version, ``"2023"`` or ``"2026"`` (see :func:`system_phi`); the
+			cap affects only the system-level φ, not the distinctions or relations.
 
 	Returns:
 		The Φ-structure.
 
 	"""
-	analysis = system_phi(system, state, candidate)
+	analysis = system_phi(system, state, candidate, version=version)
 	found = distinctions(system, state, candidate, specification=analysis.cause_effect_state)
 	related = relations(found, analysis.cause_effect_state, system.shape)
 	return PhiStructure(

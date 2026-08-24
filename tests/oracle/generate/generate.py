@@ -120,10 +120,10 @@ def generate_iit3(spec, substrate):
     return fixture
 
 
-def generate_iit4(spec, substrate):
-    with pyphi.config.override(progress_bars=False, **preset_config("iit4")):
+def generate_iit4(spec, substrate, preset_key="iit4"):
+    with pyphi.config.override(progress_bars=False, **preset_config(preset_key)):
         analysis = pyphi.analyze(substrate, spec.state)
-        fixture = base_fixture(spec, substrate, "iit4")
+        fixture = base_fixture(spec, substrate, preset_key)
         fixture["results"] = extract.iit4_results(analysis)
     return fixture
 
@@ -195,7 +195,7 @@ def main():
                 if preset_key == "iit3":
                     fixture = generate_iit3(spec, substrate)
                 else:
-                    fixture = generate_iit4(spec, substrate)
+                    fixture = generate_iit4(spec, substrate, preset_key)
                 path = write_fixture(fixture, preset_key)
                 elapsed = time.time() - start
                 print(f"  ok  {label:32s} -> {path.name} ({elapsed:.1f}s)")
