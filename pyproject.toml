@@ -49,6 +49,10 @@ docs = [
 	"mkdocs-material",
 	"mkdocstrings[python]",
 ]
+examples = [
+	"ipykernel",
+	"matplotlib",
+]
 
 [project.urls]
 Homepage = "https://github.com/maxencefaldor/iitx"

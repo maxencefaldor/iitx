@@ -76,6 +76,13 @@ uv pip install git+https://github.com/maxencefaldor/iitx.git
 Requires Python ≥ 3.14. Dependencies: `jax`, `numpy`, and `POT` (the exact
 earth-mover's-distance backend for IIT 3.0).
 
+## Examples
+
+| Notebook | What it shows |
+| --- | --- |
+| [Getting started](examples/00_getting_started.ipynb) | Systems, φ_s, Φ-structures, IIT 3.0, batching, non-binary units, macro levels |
+| [Ascending Φ](examples/01_ascending_phi.ipynb) | Gradient ascent on integrated information itself — to our knowledge a first — with structure emerging along the way |
+
 ## Design
 
 The design documents are part of the repository: `docs/design.md` (the core

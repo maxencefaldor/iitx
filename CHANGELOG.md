@@ -33,3 +33,9 @@ All notable changes to `iitx` are documented here. The format follows
   golden fixtures for both theory versions including non-binary systems
   (`tests/oracle/`).
 - Documentation: MkDocs Material site with API reference, README, contributing guide.
+- The IIT 4.0 (2026) variant (`version="2026"`): the intrinsic-information cap on φ_s,
+  applied inside tie resolution as the oracle does, with its own 11 oracle fixtures.
+- Named relaxations (`iitx.relax`, `iitx.distances.sinkhorn_emd`): differentiable
+  approximations, explicitly named, converging to the exact quantities.
+- Example notebooks: `00_getting_started` and `01_ascending_phi` — gradient ascent on
+  integrated information itself, with emergent Φ-structure.
