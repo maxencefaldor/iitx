@@ -32,7 +32,8 @@ from jaxtyping import Array, Bool, Float, Int
 
 from iitx.direction import Direction
 from iitx.enumeration import mechanism_partitions, subsets, system_cuts
-from iitx.repertoires import purview_distribution, repertoire
+from iitx.measures.common import quantize
+from iitx.repertoires import condition, purview_distribution, repertoire, sever
 from iitx.states import radix_weights
 from iitx.system import System, node_tpms
 
@@ -112,7 +113,7 @@ def cause_effect_state(
 	if candidate is None:
 		candidate = jnp.ones(system.n, dtype=bool)
 	factors = node_tpms(system, check_independence=False)
-	effect_factors = _clamp_background(factors, state, candidate)
+	effect_factors = condition(factors, state, candidate)
 	cause_factors = _backward_factors(factors, state, candidate)
 
 	effect_state, phi_effect = _specify(
@@ -155,12 +156,12 @@ def system_phi(
 
 	"""
 	units = tuple(range(system.n)) if candidate is None else tuple(sorted(candidate))
-	candidate_mask = jnp.zeros(system.n, dtype=bool).at[jnp.asarray(units)].set(True)
+	candidate_mask = jnp.asarray(_static_mask(system.n, units))
 	cuts, severed = system_cuts(system.n, units)
 	cuts, severed = jnp.asarray(cuts), jnp.asarray(severed)
 
 	factors = node_tpms(system, check_independence=False)
-	effect_factors = _clamp_background(factors, state, candidate_mask)
+	effect_factors = condition(factors, state, candidate_mask)
 	cause_factors = _backward_factors(factors, state, candidate_mask)
 
 	ces = cause_effect_state(system, state, candidate_mask)
@@ -188,7 +189,7 @@ def system_phi(
 		partitioned_effect = _at(
 			purview_distribution(
 				repertoire(
-					_sever(effect_factors, cut),
+					sever(effect_factors, cut),
 					state,
 					candidate_mask,
 					candidate_mask,
@@ -200,7 +201,7 @@ def system_phi(
 			system.shape,
 		)
 		partitioned_cause = _at(
-			_likelihood(_sever(cause_factors, cut), state, candidate_mask),
+			_likelihood(sever(cause_factors, cut), state, candidate_mask),
 			ces.cause_state,
 			system.shape,
 		)
@@ -215,10 +216,10 @@ def system_phi(
 	# A partition with φ ≤ 0 (at precision) proves reducibility: the oracle short-circuits
 	# and reports the *first* such partition in enumeration order. Otherwise the minimum
 	# partition is selected by quantized (normalized φ, -φ), first occurrence among ties.
-	nonpositive = _quantize(phi) <= 0.0
-	key_normalized = _quantize(normalized)
+	nonpositive = _q(phi) <= 0.0
+	key_normalized = _q(normalized)
 	minimal = key_normalized <= key_normalized.min()
-	key_phi = jnp.where(minimal, _quantize(phi), -jnp.inf)
+	key_phi = jnp.where(minimal, _q(phi), -jnp.inf)
 	tied = minimal & (key_phi >= key_phi.max())
 	index = jnp.where(nonpositive.any(), jnp.argmax(nonpositive), jnp.argmax(tied))
 
@@ -230,33 +231,6 @@ def system_phi(
 		cut_index=index,
 		cause_effect_state=ces,
 	)
-
-
-def _clamp_background(
-	factors: tuple[Float[Array, "*shape q"], ...],
-	state: Int[Array, " n"],
-	candidate: Bool[Array, " n"],
-) -> tuple[Float[Array, "*shape q"], ...]:
-	"""Clamp non-candidate previous-state axes at the current state (effect TPM, Eq. 3).
-
-	Args:
-		factors: Per-unit conditionals of the whole system.
-		state: Current state, shape ``(n,)``.
-		candidate: Mask of the candidate system's units.
-
-	Returns:
-		Factors constant along background axes, equal to their value at the current
-		background state.
-
-	"""
-	clamped = []
-	for factor in factors:
-		out = factor
-		for axis in range(len(factors)):
-			selected = jnp.take(out, state[axis], axis=axis)
-			out = jnp.where(candidate[axis], out, jnp.expand_dims(selected, axis))
-		clamped.append(out)
-	return tuple(clamped)
 
 
 def _backward_factors(
@@ -305,32 +279,6 @@ def _backward_factors(
 			out = jnp.where(candidate[axis], out, out.sum(axis=axis, keepdims=True))
 		backward.append(out)
 	return tuple(backward)
-
-
-def _sever(
-	factors: tuple[Float[Array, "*shape q"], ...], cut: Bool[Array, "n n"]
-) -> tuple[Float[Array, "*shape q"], ...]:
-	"""Noise the connections a cut severs (Eqs. 17-18).
-
-	Severed inputs are uniformly marginalized out of the receiving unit's conditional:
-	unit ``j`` perceives each severed source as independent noise.
-
-	Args:
-		factors: Per-unit conditionals.
-		cut: Cut matrix, shape ``(n, n)``; entry ``(i, j)`` severs the connection from
-			unit ``i`` to unit ``j``.
-
-	Returns:
-		The partitioned factors.
-
-	"""
-	severed = []
-	for j, factor in enumerate(factors):
-		out = factor
-		for axis in range(len(factors)):
-			out = jnp.where(cut[axis, j], out.mean(axis=axis, keepdims=True), out)
-		severed.append(out)
-	return tuple(severed)
 
 
 def _likelihood(
@@ -477,7 +425,7 @@ def _at(
 	return jnp.ravel(full, order="F")[index]
 
 
-def _log2_ratio(p: Float[Array, ...], q: Float[Array, ...]) -> Float[Array, ...]:
+def _log2_ratio(p: Float[Array, "..."], q: Float[Array, "..."]) -> Float[Array, "..."]:
 	"""Compute ``log2(p / q)`` with guarded gradients at ``p = 0``.
 
 	Args:
@@ -494,11 +442,8 @@ def _log2_ratio(p: Float[Array, ...], q: Float[Array, ...]) -> Float[Array, ...]
 	return jnp.where(p > 0.0, jnp.where(q > 0.0, jnp.log2(safe_p / safe_q), jnp.inf), 0.0)
 
 
-def _quantize(x: Float[Array, ...]) -> Float[Array, ...]:
-	"""Quantize values to the measure's precision before comparison.
-
-	Ties are defined at :data:`PRECISION`, matching the oracle's round-then-compare
-	semantics. Meaningful under float64; under float32 the quantization is a no-op.
+def _q(x: Float[Array, "..."]) -> Float[Array, "..."]:
+	"""Quantize to this measure's precision (see :func:`iitx.measures.common.quantize`).
 
 	Args:
 		x: Values to quantize.
@@ -507,7 +452,7 @@ def _quantize(x: Float[Array, ...]) -> Float[Array, ...]:
 		Values rounded to the nearest multiple of :data:`PRECISION`.
 
 	"""
-	return jnp.round(x / PRECISION) * PRECISION
+	return quantize(x, PRECISION)
 
 
 @jax.tree_util.register_dataclass
@@ -573,10 +518,11 @@ def distinctions(
 	"""
 	units = tuple(range(system.n)) if candidate is None else tuple(sorted(candidate))
 	n, shape = system.n, system.shape
-	candidate_mask = jnp.zeros(n, dtype=bool).at[jnp.asarray(units)].set(True)
+	static_candidate = _static_mask(n, units)
+	candidate_mask = jnp.asarray(static_candidate)
 
 	factors = node_tpms(system, check_independence=False)
-	effect_factors = _clamp_background(factors, state, candidate_mask)
+	effect_factors = condition(factors, state, candidate_mask)
 	cause_factors = _backward_factors(factors, state, candidate_mask)
 	ces = cause_effect_state(system, state, candidate_mask)
 
@@ -607,7 +553,7 @@ def distinctions(
 	for mechanism_row in mechanism_table:
 		mechanism_units = tuple(int(u) for u in np.flatnonzero(mechanism_row))
 		mechanism_bitmask = int(sum(1 << u for u in mechanism_units))
-		valid_mechanism = bool(np.all(~mechanism_row | np.asarray(candidate_mask)))
+		valid_mechanism = bool(np.all(~mechanism_row | static_candidate))
 		if not valid_mechanism:
 			results.append(None)
 			continue
@@ -669,9 +615,9 @@ def distinctions(
 				jnp.asarray(valid),
 			)
 			# Restrict purviews to the candidate.
-			inside = jnp.asarray(np.all(~purview_table | np.asarray(candidate_mask), axis=1))
+			inside = jnp.asarray(np.all(~purview_table | static_candidate, axis=1))
 			phi_z = jnp.where(inside, phi_z, -jnp.inf)
-			best = _quantize(phi_z) >= _quantize(phi_z).max()
+			best = _q(phi_z) >= _q(phi_z).max()
 			# Among tied purviews, prefer the first whose state is congruent.
 			preferred = best & congruent
 			purview_index = jnp.where(preferred.any(), jnp.argmax(preferred), jnp.argmax(best))
@@ -685,7 +631,7 @@ def distinctions(
 		phi_cause, cause_purview, cause_state_row, cause_congruent = side[Direction.CAUSE]
 		phi_effect, effect_purview, effect_state_row, effect_congruent = side[Direction.EFFECT]
 		phi_d = jnp.minimum(phi_cause, phi_effect)
-		exists = (_quantize(phi_d) > 0.0) & cause_congruent & effect_congruent
+		exists = (_q(phi_d) > 0.0) & cause_congruent & effect_congruent
 		results.append(
 			(
 				exists,
@@ -728,7 +674,24 @@ def distinctions(
 	)
 
 
-def _smear_axes(x: Float[Array, ...], keep: Bool[Array, " n"]) -> Float[Array, ...]:
+def _static_mask(n: int, units: tuple[int, ...]) -> np.ndarray:
+	"""Build the static candidate mask of a unit tuple.
+
+	Args:
+		n: Number of units.
+		units: The candidate's units.
+
+	Returns:
+		Boolean NumPy mask of shape ``(n,)`` — static, since the candidate is part of
+		the computation's structure, not its data.
+
+	"""
+	mask = np.zeros(n, dtype=bool)
+	mask[list(units)] = True
+	return mask
+
+
+def _smear_axes(x: Float[Array, "..."], keep: Bool[Array, " n"]) -> Float[Array, "..."]:
 	"""Replace each state axis outside ``keep`` by its uniform mean, keeping dimensions.
 
 	Args:
@@ -746,8 +709,8 @@ def _smear_axes(x: Float[Array, ...], keep: Bool[Array, " n"]) -> Float[Array, .
 
 
 def _at_prev(
-	x: Float[Array, ...], state: Int[Array, " n"], shape: tuple[int, ...]
-) -> Float[Array, ...]:
+	x: Float[Array, "..."], state: Int[Array, " n"], shape: tuple[int, ...]
+) -> Float[Array, "..."]:
 	"""Index the first ``n`` (state) axes of a tensor at a state vector.
 
 	Args:
@@ -884,10 +847,10 @@ def _purview_phi(
 	# Per state: the oracle's short-circuit at the first φ ≤ 0 partition, else the
 	# minimum by quantized (normalized φ, -φ).
 	flat_phi = phi.reshape((phi.shape[0], -1), order="F")
-	nonpositive = (_quantize(flat_phi) <= 0.0) & ok[:, None]
-	key_normalized = jnp.where(ok[:, None], _quantize(flat_phi / severed[:, None]), jnp.inf)
+	nonpositive = (_q(flat_phi) <= 0.0) & ok[:, None]
+	key_normalized = jnp.where(ok[:, None], _q(flat_phi / severed[:, None]), jnp.inf)
 	minimal = key_normalized <= key_normalized.min(axis=0, keepdims=True)
-	key_phi = jnp.where(minimal, _quantize(flat_phi), -jnp.inf)
+	key_phi = jnp.where(minimal, _q(flat_phi), -jnp.inf)
 	tied = minimal & (key_phi >= key_phi.max(axis=0, keepdims=True))
 	choice = jnp.where(
 		nonpositive.any(axis=0), jnp.argmax(nonpositive, axis=0), jnp.argmax(tied, axis=0)
@@ -897,8 +860,8 @@ def _purview_phi(
 	# Specified state: ii-maximal states, then φ-maximal among them, preferring the
 	# congruent state, then first occurrence in canonical order.
 	flat_information = jnp.ravel(information, order="F")
-	tied_information = _quantize(flat_information) >= _quantize(flat_information).max()
-	key = jnp.where(tied_information, _quantize(mip_phi), -jnp.inf)
+	tied_information = _q(flat_information) >= _q(flat_information).max()
+	key = jnp.where(tied_information, _q(mip_phi), -jnp.inf)
 	candidates = tied_information & (key >= key.max())
 	congruent_index = jnp.sum(specified * jnp.asarray(radix_weights(shape)))
 	congruent = candidates[congruent_index]

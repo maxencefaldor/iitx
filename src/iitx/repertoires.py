@@ -35,7 +35,7 @@ from jaxtyping import Array, Bool, Float, Int
 
 from iitx.direction import Direction
 
-__all__ = ["purview_distribution", "repertoire"]
+__all__ = ["condition", "purview_distribution", "repertoire", "sever"]
 
 
 def repertoire(
@@ -176,3 +176,63 @@ def _normalize(x: Float[Array, "*shape"]) -> Float[Array, "*shape"]:
 	"""
 	total = x.sum()
 	return jnp.where(total > 0.0, x / jnp.where(total > 0.0, total, 1.0), 0.0)
+
+
+def condition(
+	node_tpms: tuple[Float[Array, "*shape q"], ...],
+	state: Int[Array, " n"],
+	candidate: Bool[Array, " n"],
+) -> tuple[Float[Array, "*shape q"], ...]:
+	"""Clamp non-candidate previous-state axes of the factors at the current state.
+
+	This is the frozen-background conditioning shared by both theory versions on the
+	effect side (and by IIT 3.0 on the cause side): units outside the candidate system
+	are fixed at their current state. The clamped factors are constant along background
+	axes, so downstream uniform marginalization leaves them untouched.
+
+	Args:
+		node_tpms: Per-unit conditionals of the whole system.
+		state: Current state of the whole system, shape ``(n,)``.
+		candidate: Mask of the candidate system's units, shape ``(n,)``.
+
+	Returns:
+		Factors constant along background axes, equal to their value at the current
+		background state.
+
+	"""
+	clamped = []
+	for factor in node_tpms:
+		out = factor
+		for axis in range(len(node_tpms)):
+			selected = jnp.take(out, state[axis], axis=axis)
+			out = jnp.where(candidate[axis], out, jnp.expand_dims(selected, axis))
+		clamped.append(out)
+	return tuple(clamped)
+
+
+def sever(
+	node_tpms: tuple[Float[Array, "*shape q"], ...], cut: Bool[Array, "n n"]
+) -> tuple[Float[Array, "*shape q"], ...]:
+	"""Noise the connections a cut severs.
+
+	Severed inputs are uniformly marginalized out of the receiving unit's conditional,
+	so each unit perceives its severed sources as independent noise — the cut semantics
+	of both theory versions (IIT 3.0 unidirectional cuts and IIT 4.0 directional
+	partitions differ only in which cut matrices are enumerated).
+
+	Args:
+		node_tpms: Per-unit conditionals.
+		cut: Cut matrix, shape ``(n, n)``; entry ``(i, j)`` severs the connection from
+			unit ``i`` to unit ``j``.
+
+	Returns:
+		The partitioned factors.
+
+	"""
+	severed = []
+	for j, factor in enumerate(node_tpms):
+		out = factor
+		for axis in range(len(node_tpms)):
+			out = jnp.where(cut[axis, j], out.mean(axis=axis, keepdims=True), out)
+		severed.append(out)
+	return tuple(severed)

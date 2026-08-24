@@ -228,3 +228,75 @@ def mechanism_partitions(
 		np.stack(co_purview_rows),
 		np.asarray(severed, dtype=np.int64),
 	)
+
+
+def bipartitions(
+	mechanism: tuple[int, ...], purview: tuple[int, ...], n: int
+) -> tuple[Bool[np.ndarray, "P n"], Bool[np.ndarray, "P n"]]:
+	"""Enumerate the IIT 3.0 mechanism-purview bipartitions.
+
+	PyPhi's ``BI`` scheme (the canonical IIT 3.0 mechanism partitions, Oizumi et al.
+	2014): unordered bipartitions of the mechanism crossed with directed bipartitions of
+	the purview, excluding assignments where one part is empty on both sides. Each
+	partition is ``(M1, Z1) x (M2, Z2)`` with ``M2``, ``Z2`` the complements within the
+	mechanism and purview; only the first part is returned.
+
+	Args:
+		mechanism: Units of the mechanism (sorted).
+		purview: Units of the purview (sorted).
+		n: Number of units of the system (mask width).
+
+	Returns:
+		A pair of boolean arrays of shape ``(P, n)``: the first part's mechanism masks
+		and purview masks.
+
+	"""
+	# Unordered mechanism halves: each pair {A, M without A} once — enumerate the halves
+	# not containing the mechanism's first unit (both halves, for an empty mechanism).
+	if mechanism:
+		mechanism_halves = [
+			half for size in range(len(mechanism)) for half in combinations(mechanism[1:], size)
+		]
+	else:
+		mechanism_halves = [()]
+
+	part_mechanism: list[np.ndarray] = []
+	part_purview: list[np.ndarray] = []
+	for mechanism_half in mechanism_halves:
+		other_half = tuple(u for u in mechanism if u not in mechanism_half)
+		for size in range(len(purview) + 1):
+			for purview_half in combinations(purview, size):
+				purview_other = tuple(u for u in purview if u not in purview_half)
+				if (not mechanism_half and not purview_half) or (
+					not other_half and not purview_other
+				):
+					continue
+				mask_m = np.zeros(n, dtype=bool)
+				mask_m[list(mechanism_half)] = True
+				mask_z = np.zeros(n, dtype=bool)
+				mask_z[list(purview_half)] = True
+				part_mechanism.append(mask_m)
+				part_purview.append(mask_z)
+
+	return np.stack(part_mechanism), np.stack(part_purview)
+
+
+def directed_bipartitions(n: int) -> Bool[np.ndarray, "num_cuts n n"]:
+	"""Enumerate the IIT 3.0 system cuts as cut matrices.
+
+	A cut severs the connections *from* one nonempty proper subset *to* its complement
+	(unidirectional; Oizumi et al. 2014). There are ``2**n - 2`` cuts, ordered by the
+	subset table.
+
+	Args:
+		n: Number of units.
+
+	Returns:
+		Boolean cut matrices of shape ``(2**n - 2, n, n)``; entry ``(i, j)`` severs the
+		connection from unit ``i`` to unit ``j``.
+
+	"""
+	masks = subsets(n, nonempty=True)[:-1]  # nonempty proper subsets
+	source = masks[:, :, None]
+	target = ~masks[:, None, :]
+	return source & target
