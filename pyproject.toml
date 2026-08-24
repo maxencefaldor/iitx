@@ -1,0 +1,94 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "iitx"
+version = "0.0.1"
+description = "Integrated Information Theory accelerated in JAX"
+readme = "README.md"
+requires-python = ">=3.14"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Maxence Faldor", email = "maxencefaldor@gmail.com" }]
+keywords = [
+	"integrated-information-theory",
+	"iit",
+	"phi",
+	"consciousness",
+	"causation",
+	"cause-effect-structure",
+	"jax",
+]
+classifiers = [
+	"Development Status :: 3 - Alpha",
+	"Intended Audience :: Science/Research",
+	"License :: OSI Approved :: MIT License",
+	"Operating System :: OS Independent",
+	"Programming Language :: Python :: 3.14",
+	"Topic :: Scientific/Engineering",
+]
+dependencies = [
+	"jax>=0.11.0",
+	"jaxtyping>=0.3.2",
+	"numpy>=2.3.0",
+	"pot>=0.9.5",
+]
+
+[project.optional-dependencies]
+dev = [
+	"beartype>=0.21.0",
+	"chex>=0.1.90",
+	"pytest>=8.3.0",
+	"pytest-cov>=6.0.0",
+	"pytest-xdist>=3.6.0",
+	"ruff>=0.15.0",
+	"ty>=0.0.38",
+]
+docs = [
+	"mkdocs",
+	"mkdocs-jupyter",
+	"mkdocs-material",
+	"mkdocstrings[python]",
+]
+
+[project.urls]
+Homepage = "https://github.com/maxencefaldor/iitx"
+
+[tool.ruff]
+src = ["src", "tests"]
+target-version = "py314"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["B", "C4", "D", "E", "F", "I", "N", "PERF", "PT", "RUF", "SIM", "UP", "W"]
+ignore = [
+	"D203",  # incorrect-blank-line-before-class
+	"D206",  # docstring-tab-indentation
+	"D213",  # multi-line-summary-second-line
+	"N803",  # non-lowercase-argument-name (math symbols: M, Z, Q)
+	"N806",  # non-lowercase-variable-in-function
+	"W191",  # tab-indentation
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/*.ipynb" = ["B007", "B905", "F811", "RUF005", "RUF059"]
+
+[tool.ruff.format]
+indent-style = "tab"
+
+[tool.ty.environment]
+python-version = "3.14"
+
+[tool.ty.rules]
+all = "error"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = [
+	"error::DeprecationWarning",
+	"error::FutureWarning",
+]
+markers = [
+	"slow: golden fixtures that take minutes (opt in with -m slow)",
+]
