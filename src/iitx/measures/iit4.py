@@ -12,18 +12,17 @@ Everything here is pure tensor algebra plus min/max reductions — no linear pro
 so ``system_phi`` composes with ``jit``, ``vmap`` (batching over systems and states),
 and ``grad`` (differentiable almost everywhere, with exact subgradients at ties).
 
-Two conventions are inherited from the oracle rather than the paper, both recorded in
-``docs/notes/``:
-
-- No positive-part clipping in φ (the paper's Eqs. 19-20 write ``|·|₊``; the reference
-  implementation does not clip, and its published fixtures have **negative** φ_s for
-  noisy systems — negative φ_s means reducible).
-- The partition normalization is ``1 / (number of distinct severed connections)`` (the
-  union of the blocks' cuts), and the minimum partition is selected by the key
-  ``(normalized φ, -φ)`` with values quantized to the precision before comparison.
+Conventions inherited from the oracle rather than the paper are recorded in
+``docs/notes/oracle-findings.md``; the load-bearing ones here: the reported φ is clamped
+by the paper's ``|·|₊`` while *selection* runs on signed values (``signed_phi`` is kept,
+not least for gradients); the partition normalization is ``1 / (number of distinct
+severed connections)``; a partition with φ ≤ 0 short-circuits the search; and ties of the
+specified state resolve by maximal φ_s, then the oracle's state-iteration order.
 """
 
 import dataclasses
+import math
+from itertools import combinations
 
 import jax
 import jax.numpy as jnp
@@ -31,12 +30,25 @@ import numpy as np
 
 from iitx.direction import Direction
 from iitx.enumeration import mechanism_partitions, subsets, system_cuts
-from iitx.measures.common import quantize
+from iitx.measures.common import quantize, strongly_connected
 from iitx.repertoires import condition, purview_distribution, repertoire, sever
-from iitx.states import radix_weights
-from iitx.system import System, node_tpms
+from iitx.states import all_states, radix_weights
+from iitx.system import System, connectivity, is_strongly_connected, node_tpms
 
-__all__ = ["CauseEffectState", "SystemPhi", "cause_effect_state", "system_phi"]
+__all__ = [
+	"CauseEffectState",
+	"Complex",
+	"Distinctions",
+	"PhiStructure",
+	"Relations",
+	"SystemPhi",
+	"cause_effect_state",
+	"complexes",
+	"distinctions",
+	"phi_structure",
+	"relations",
+	"system_phi",
+]
 
 PRECISION = 1e-13
 """Quantization applied to values before any comparison (PyPhi's 4.0 ``PRECISION``)."""
@@ -70,11 +82,15 @@ class SystemPhi:
 
 	Attributes:
 		phi: System integrated information ``phi_s = min(phi_cause, phi_effect)`` at the
-			minimum partition, unnormalized, in ibits. Negative means reducible.
-		normalized_phi: ``phi`` divided by the number of connections the minimum
-			partition severs (used only to select the partition).
-		phi_cause: Cause-side φ at the minimum partition.
-		phi_effect: Effect-side φ at the minimum partition.
+			minimum partition, clamped at zero by the paper's ``|·|₊`` (as the primary
+			oracle does), unnormalized, in ibits. Zero means reducible.
+		signed_phi: The unclamped value — negative when a partition *increases* the
+			specified probabilities. Selection uses signed values; keep this for
+			gradients, which the clamp would zero out in the reducible region.
+		normalized_phi: Clamped ``phi`` divided by the number of connections the minimum
+			partition severs (normalization is used only to select the partition).
+		phi_cause: Cause-side φ at the minimum partition (signed).
+		phi_effect: Effect-side φ at the minimum partition (signed).
 		cut_index: Index of the minimum partition in the canonical cut table
 			(:func:`iitx.enumeration.system_cuts` for this candidate).
 		cause_effect_state: The maximal cause-effect state the φ values refer to.
@@ -82,6 +98,7 @@ class SystemPhi:
 	"""
 
 	phi: jax.Array
+	signed_phi: jax.Array
 	normalized_phi: jax.Array
 	phi_cause: jax.Array
 	phi_effect: jax.Array
@@ -162,30 +179,37 @@ def system_phi(
 	factors = node_tpms(system, check_independence=False)
 	effect_factors = condition(factors, state, candidate_mask)
 	cause_factors = _backward_factors(factors, state, candidate_mask)
+	shape = system.shape
+	num_states = math.prod(shape)
 
-	ces = cause_effect_state(system, state, candidate_mask)
-
-	# Uncut quantities at the specified states.
-	effect_repertoire = purview_distribution(
-		repertoire(effect_factors, state, candidate_mask, candidate_mask, Direction.EFFECT),
-		candidate_mask,
+	# Intrinsic information of every candidate cause/effect state, and per-cut,
+	# per-state φ on each side (φ depends only on its own side's specified state, so
+	# tie resolution over specified-state pairs needs the full per-state tables).
+	information_effect = jnp.ravel(
+		_effect_information(effect_factors, state, candidate_mask), order="F"
 	)
-	selectivity_effect = _at(effect_repertoire, ces.effect_state, system.shape)
+	information_cause = jnp.ravel(
+		_cause_information(cause_factors, state, candidate_mask), order="F"
+	)
+	selectivity_effect = jnp.ravel(
+		purview_distribution(
+			repertoire(effect_factors, state, candidate_mask, candidate_mask, Direction.EFFECT),
+			candidate_mask,
+		),
+		order="F",
+	)
 	forward_effect = selectivity_effect
-	selectivity_cause = _at(
+	selectivity_cause = jnp.ravel(
 		purview_distribution(
 			repertoire(cause_factors, state, candidate_mask, candidate_mask, Direction.CAUSE),
 			candidate_mask,
 		),
-		ces.cause_state,
-		system.shape,
+		order="F",
 	)
-	forward_cause = _at(
-		_likelihood(cause_factors, state, candidate_mask), ces.cause_state, system.shape
-	)
+	forward_cause = jnp.ravel(_likelihood(cause_factors, state, candidate_mask), order="F")
 
 	def evaluate(cut: jax.Array) -> tuple[jax.Array, jax.Array]:
-		partitioned_effect = _at(
+		partitioned_effect = jnp.ravel(
 			purview_distribution(
 				repertoire(
 					sever(effect_factors, cut),
@@ -196,37 +220,71 @@ def system_phi(
 				),
 				candidate_mask,
 			),
-			ces.effect_state,
-			system.shape,
+			order="F",
 		)
-		partitioned_cause = _at(
-			_likelihood(sever(cause_factors, cut), state, candidate_mask),
-			ces.cause_state,
-			system.shape,
+		partitioned_cause = jnp.ravel(
+			_likelihood(sever(cause_factors, cut), state, candidate_mask), order="F"
 		)
 		phi_effect = selectivity_effect * _log2_ratio(forward_effect, partitioned_effect)
 		phi_cause = selectivity_cause * _log2_ratio(forward_cause, partitioned_cause)
 		return phi_cause, phi_effect
 
-	phi_cause, phi_effect = jax.vmap(evaluate)(cuts)
-	phi = jnp.minimum(phi_cause, phi_effect)
-	normalized = phi / severed
+	phi_cause_z, phi_effect_z = jax.vmap(evaluate)(cuts)  # (num_cuts, Q) each
 
-	# A partition with φ ≤ 0 (at precision) proves reducibility: the oracle short-circuits
-	# and reports the *first* such partition in enumeration order. Otherwise the minimum
-	# partition is selected by quantized (normalized φ, -φ), first occurrence among ties.
-	nonpositive = _q(phi) <= 0.0
-	key_normalized = _q(normalized)
-	minimal = key_normalized <= key_normalized.min()
-	key_phi = jnp.where(minimal, _q(phi), -jnp.inf)
-	tied = minimal & (key_phi >= key_phi.max())
-	index = jnp.where(nonpositive.any(), jnp.argmax(nonpositive), jnp.argmax(tied))
+	# The minimum partition for every (cause state, effect state) pair: φ per cut is the
+	# min across sides; a cut with φ ≤ 0 (at precision) proves reducibility and — as the
+	# oracle short-circuits — the *first* such cut in enumeration order is the reported
+	# minimum partition; otherwise the minimum by quantized (normalized φ, -φ).
+	pair_phi = jnp.minimum(phi_cause_z[:, :, None], phi_effect_z[:, None, :])
+	pair_normalized = pair_phi / severed[:, None, None]
+	nonpositive = _q(pair_phi) <= 0.0
+	key_normalized = _q(pair_normalized)
+	minimal = key_normalized <= key_normalized.min(axis=0, keepdims=True)
+	key_phi = jnp.where(minimal, _q(pair_phi), -jnp.inf)
+	tied_cut = minimal & (key_phi >= key_phi.max(axis=0, keepdims=True))
+	cut_choice = jnp.where(
+		nonpositive.any(axis=0), jnp.argmax(nonpositive, axis=0), jnp.argmax(tied_cut, axis=0)
+	)
+	mip_phi = jnp.take_along_axis(pair_phi, cut_choice[None], axis=0)[0]  # (Q, Q)
 
+	# Specified states: ii-maximal on each side, then — the oracle's tie cascade — the
+	# pair with maximal φ_s, then the oracle's state-iteration order.
+	tied_cause = _q(information_cause) >= _q(information_cause).max()
+	tied_effect = _q(information_effect) >= _q(information_effect).max()
+	allowed = tied_cause[:, None] & tied_effect[None, :]
+	key_pair = jnp.where(allowed, _q(mip_phi), -jnp.inf)
+	winners = allowed & (key_pair >= key_pair.max())
+	rank = jnp.asarray(_oracle_rank(shape))
+	pair_rank = rank[:, None] * num_states + rank[None, :]
+	winner = jnp.argmin(jnp.where(winners, pair_rank, jnp.inf))
+	cause_index, effect_index = winner // num_states, winner % num_states
+	weights = jnp.asarray(radix_weights(shape))
+	ces = CauseEffectState(
+		cause_state=(cause_index // weights) % jnp.asarray(shape),
+		effect_state=(effect_index // weights) % jnp.asarray(shape),
+		phi_cause=information_cause[cause_index],
+		phi_effect=information_effect[effect_index],
+	)
+
+	index = cut_choice[cause_index, effect_index]
+	phi = mip_phi[cause_index, effect_index]
+	normalized = pair_normalized[index, cause_index, effect_index]
+	phi_cause = phi_cause_z[index, cause_index]
+	phi_effect = phi_effect_z[index, effect_index]
+
+	# A candidate that is not strongly connected is null by definition; a single-unit
+	# candidate additionally needs a self-loop.
+	strong = strongly_connected(connectivity(system), candidate_mask)
+	if len(units) == 1:
+		strong = strong & connectivity(system)[units[0], units[0]]
+
+	signed = jnp.where(strong, phi, 0.0)
 	return SystemPhi(
-		phi=phi[index],
-		normalized_phi=normalized[index],
-		phi_cause=phi_cause[index],
-		phi_effect=phi_effect[index],
+		phi=jnp.maximum(signed, 0.0),
+		signed_phi=signed,
+		normalized_phi=jnp.maximum(jnp.where(strong, normalized, 0.0), 0.0),
+		phi_cause=jnp.where(strong, phi_cause, 0.0),
+		phi_effect=jnp.where(strong, phi_effect, 0.0),
 		cut_index=index,
 		cause_effect_state=ces,
 	)
@@ -385,8 +443,9 @@ def _cause_information(
 def _specify(information: jax.Array, shape: tuple[int, ...]) -> tuple[jax.Array, jax.Array]:
 	"""Select the state maximizing an intrinsic-information tensor.
 
-	Ties are broken by first occurrence in little-endian state order, the library's
-	canonical order.
+	Ties are broken by first occurrence in the oracle's state-iteration order (the last
+	unit varying fastest), so tied specified states — common in symmetric deterministic
+	systems, where the choice changes downstream φ — agree with the oracle.
 
 	Args:
 		information: Full-shape intrinsic-information tensor.
@@ -397,9 +456,33 @@ def _specify(information: jax.Array, shape: tuple[int, ...]) -> tuple[jax.Array,
 
 	"""
 	flat = jnp.ravel(information, order="F")
-	index = jnp.argmax(flat)
+	tied = _q(flat) >= _q(flat).max()
+	index = jnp.argmin(jnp.where(tied, jnp.asarray(_oracle_rank(shape)), jnp.inf))
 	state = (index // jnp.asarray(radix_weights(shape))) % jnp.asarray(shape)
 	return state, flat[index]
+
+
+def _oracle_rank(shape: tuple[int, ...]) -> np.ndarray:
+	"""Rank every state by the oracle's iteration order, indexed little-endian.
+
+	PyPhi iterates candidate states with the *last* unit varying fastest
+	(``itertools.product``); iitx's canonical flat order varies unit 0 fastest. This
+	table maps each little-endian flat index to its rank in the oracle's order, so
+	first-occurrence tie-breaking can follow the oracle exactly
+	(``docs/notes/oracle-findings.md`` §5).
+
+	Args:
+		shape: Per-unit alphabet sizes.
+
+	Returns:
+		Integer rank table of shape ``(Q,)``, a build-time constant.
+
+	"""
+	states = all_states(shape)
+	weights = np.ones(len(shape), dtype=np.int64)
+	for i in range(len(shape) - 2, -1, -1):
+		weights[i] = weights[i + 1] * shape[i + 1]
+	return states @ weights
 
 
 def _at(full: jax.Array, state: jax.Array, shape: tuple[int, ...]) -> jax.Array:
@@ -488,6 +571,7 @@ def distinctions(
 	system: System,
 	state: jax.Array,
 	candidate: tuple[int, ...] | None = None,
+	specification: CauseEffectState | None = None,
 ) -> Distinctions:
 	"""Unfold the causal distinctions of a candidate system.
 
@@ -504,6 +588,10 @@ def distinctions(
 		system: The system.
 		state: Current state of the whole system, shape ``(n,)``.
 		candidate: Units of the candidate system (static); ``None`` means all units.
+		specification: The system's maximal cause-effect state to be congruent with.
+			``None`` computes the ii-level specification; pass the φ-resolved one from
+			:func:`system_phi` (as :func:`phi_structure` does) for oracle-exact
+			congruence when the specification is tied.
 
 	Returns:
 		The distinctions, stacked over the nonempty mechanisms of the candidate.
@@ -517,7 +605,11 @@ def distinctions(
 	factors = node_tpms(system, check_independence=False)
 	effect_factors = condition(factors, state, candidate_mask)
 	cause_factors = _backward_factors(factors, state, candidate_mask)
-	ces = cause_effect_state(system, state, candidate_mask)
+	ces = (
+		specification
+		if specification is not None
+		else cause_effect_state(system, state, candidate_mask)
+	)
 
 	# Master tables over co-part bitmasks (axis 1 ordered by bitmask value).
 	bits = np.asarray([[bool(mask >> i & 1) for i in range(n)] for mask in range(2**n)], dtype=bool)
@@ -652,10 +744,11 @@ def distinctions(
 			jnp.asarray(0.0, dtype=system.tpm.dtype),
 		)
 
+	strong = strongly_connected(connectivity(system), candidate_mask)
 	rows = [row if row is not None else zeros_row() for row in results]
 	stacked = [jnp.stack(column) for column in zip(*rows, strict=True)]
 	return Distinctions(
-		exists=stacked[0],
+		exists=stacked[0] & strong,
 		phi=stacked[1],
 		mechanism=stacked[2],
 		cause_purview=stacked[3],
@@ -856,7 +949,8 @@ def _purview_phi(
 	candidates = tied_information & (key >= key.max())
 	congruent_index = jnp.sum(specified * jnp.asarray(radix_weights(shape)))
 	congruent = candidates[congruent_index]
-	index = jnp.where(congruent, congruent_index, jnp.argmax(candidates))
+	fallback = jnp.argmin(jnp.where(candidates, jnp.asarray(_oracle_rank(shape)), jnp.inf))
+	index = jnp.where(congruent, congruent_index, fallback)
 	state = (index // jnp.asarray(radix_weights(shape))) % jnp.asarray(shape)
 	return mip_phi[index], congruent, state
 
@@ -1001,7 +1095,7 @@ def phi_structure(
 
 	"""
 	analysis = system_phi(system, state, candidate)
-	found = distinctions(system, state, candidate)
+	found = distinctions(system, state, candidate, specification=analysis.cause_effect_state)
 	related = relations(found, analysis.cause_effect_state, system.shape)
 	return PhiStructure(
 		system=analysis,
@@ -1009,3 +1103,58 @@ def phi_structure(
 		relations=related,
 		big_phi=jnp.where(found.exists, found.phi, 0.0).sum() + related.sum_phi,
 	)
+
+
+@dataclasses.dataclass(frozen=True)
+class Complex:
+	"""One complex of a condensed system.
+
+	Attributes:
+		units: The complex's units.
+		analysis: Its system φ analysis.
+
+	"""
+
+	units: tuple[int, ...]
+	analysis: SystemPhi
+
+
+def complexes(system: System, state: jax.Array) -> list[Complex]:
+	"""Condense a system into its complexes (recursive exclusion, Eqs. 24-26).
+
+	Among all candidate systems, the one with maximal φ_s is a complex (the first
+	complex is the maximal substrate); its units are removed and the search recurses on
+	the remainder until no candidate has positive φ_s. Excluded units remain background
+	conditions throughout. A Python driver by design (the recursion is data-dependent);
+	each candidate's analysis is the jitted :func:`system_phi`.
+
+	Ties among overlapping candidates resolve by first occurrence in powerset order
+	(the S1 Text's Φ-comparison cascade for exact ties is deferred with the deeper tie
+	machinery; the residual divergence is recorded in ``docs/notes/oracle-findings.md``).
+
+	Args:
+		system: The system.
+		state: Current state of the whole system, shape ``(n,)``.
+
+	Returns:
+		The complexes, in order of discovery (decreasing φ_s across rounds).
+
+	"""
+	remaining = list(range(system.n))
+	found: list[Complex] = []
+	while remaining:
+		best: Complex | None = None
+		for size in range(1, len(remaining) + 1):
+			for units in combinations(remaining, size):
+				if not is_strongly_connected(system, units):
+					continue
+				analysis = system_phi(system, state, units)
+				if float(analysis.phi) > 0.0 and (
+					best is None or float(analysis.phi) > float(best.analysis.phi)
+				):
+					best = Complex(units=units, analysis=analysis)
+		if best is None:
+			break
+		found.append(best)
+		remaining = [u for u in remaining if u not in best.units]
+	return found

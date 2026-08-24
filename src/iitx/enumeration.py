@@ -118,6 +118,12 @@ def system_cuts(n: int, candidate: tuple[int, ...] | None = None) -> tuple[np.nd
 
 	"""
 	units = list(range(n)) if candidate is None else sorted(candidate)
+	if len(units) == 1:
+		# A single-unit candidate admits only the complete partition (its self-loop
+		# severed), as in the oracle's monad handling.
+		complete = np.zeros((1, n, n), dtype=bool)
+		complete[0, units[0], units[0]] = True
+		return complete, np.ones(1, dtype=np.int64)
 	directions = ("cause", "effect", "bidirectional")
 
 	matrices: list[np.ndarray] = []

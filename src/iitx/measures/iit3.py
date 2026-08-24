@@ -18,6 +18,7 @@ before any comparison, exactly as PyPhi rounds.
 """
 
 import dataclasses
+from itertools import combinations
 
 import jax
 import jax.numpy as jnp
@@ -26,11 +27,11 @@ import numpy as np
 from iitx.direction import Direction
 from iitx.distances import emd, hamming_matrix, marginal_emd
 from iitx.enumeration import bipartitions, directed_bipartitions, subsets
-from iitx.measures.common import quantize
+from iitx.measures.common import quantize, strongly_connected
 from iitx.repertoires import condition, repertoire, sever
-from iitx.system import System, node_tpms
+from iitx.system import System, connectivity, is_strongly_connected, node_tpms
 
-__all__ = ["Concepts", "SystemPhi", "ces", "system_phi"]
+__all__ = ["Complex", "Concepts", "SystemPhi", "ces", "major_complex", "system_phi"]
 
 PRECISION = 1e-6
 """Quantization applied to every distance before comparison (PyPhi's 3.0 ``PRECISION``)."""
@@ -153,7 +154,15 @@ def system_phi(
 
 	distances = quantize(jax.vmap(cut_distance)(cuts), PRECISION)
 	index = jnp.argmin(distances)
-	return SystemPhi(phi=distances[index], cut_index=index, ces=whole)
+
+	# A candidate that is not strongly connected is null by definition (its analysis,
+	# including the cause-effect structure, is empty in the oracle's null result).
+	strong = strongly_connected(connectivity(system), jnp.asarray(candidate_mask))
+	return SystemPhi(
+		phi=jnp.where(strong, distances[index], 0.0),
+		cut_index=index,
+		ces=dataclasses.replace(whole, exists=whole.exists & strong),
+	)
 
 
 def _candidate_cuts(n: int, units: tuple[int, ...]) -> np.ndarray:
@@ -478,3 +487,74 @@ def _normalize(x: jax.Array) -> jax.Array:
 	"""
 	total = x.sum()
 	return jnp.where(total > 0.0, x / jnp.where(total > 0.0, total, 1.0), 0.0)
+
+
+@dataclasses.dataclass(frozen=True)
+class Complex:
+	"""One candidate system with its Φ analysis.
+
+	Attributes:
+		units: The candidate's units.
+		analysis: Its Φ analysis.
+
+	"""
+
+	units: tuple[int, ...]
+	analysis: SystemPhi
+
+
+def major_complex(system: System, state: jax.Array) -> Complex | None:
+	"""Find the major complex: the candidate system with globally maximal Φ.
+
+	Candidates are the strongly connected subsets of two or more units whose conditioned
+	current state is reachable (unreachable candidates are skipped, as the oracle skips
+	them). Ties resolve to the larger candidate, then first in powerset order — matching
+	the oracle's ordering key up to its final index comparison. A Python driver by
+	design; each candidate's analysis is the jitted :func:`system_phi`.
+
+	Args:
+		system: The system.
+		state: Current state of the whole system, shape ``(n,)``.
+
+	Returns:
+		The major complex, or ``None`` if no candidate has positive Φ.
+
+	"""
+	best: Complex | None = None
+	for size in range(2, system.n + 1):
+		for units in combinations(range(system.n), size):
+			if not is_strongly_connected(system, units):
+				continue
+			if not _reachable(system, state, units):
+				continue
+			analysis = system_phi(system, state, units)
+			phi = float(analysis.phi)
+			if phi > 0.0 and (
+				best is None
+				or phi > float(best.analysis.phi)
+				or (phi == float(best.analysis.phi) and len(units) > len(best.units))
+			):
+				best = Complex(units=units, analysis=analysis)
+	return best
+
+
+def _reachable(system: System, state: jax.Array, units: tuple[int, ...]) -> bool:
+	"""Test whether the candidate's current state is reachable given its frozen background.
+
+	Args:
+		system: The system.
+		state: Current state of the whole system.
+		units: The candidate's units.
+
+	Returns:
+		Whether some prior state gives the conditioned current state positive
+		probability.
+
+	"""
+	factors = condition(
+		node_tpms(system, check_independence=False), state, jnp.asarray(_mask(system.n, units))
+	)
+	current = jnp.ones(system.shape, dtype=system.tpm.dtype)
+	for u in units:
+		current = current * jnp.take(factors[u], state[u], axis=-1)
+	return bool(current.sum() > 0.0)

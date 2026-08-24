@@ -5,15 +5,18 @@ published theory — discovered while implementing against the oracle's source a
 fixtures. Each is a convention `iitx` reproduces deliberately; none is guessable from the
 papers. (PyPhi refs: `feature/iit-4.0` @ `b78d0e34`, `main` @ `ce2b2832`.)
 
-## 1. IIT 4.0 φ has no positive-part clipping
+## 1. IIT 4.0 φ clipping: the two oracles disagree, and main follows the paper
 
 Eqs. 19-20 and 41/44 of Albantakis et al. (2023) write the integrated-information
-log-ratio inside a positive part, `|·|₊`. The reference implementation
-(`metrics/distribution.py::generalized_intrinsic_difference`) does **not** clip: φ is
-selectivity × raw log-ratio, and the published golden fixture for
-`basic_noisy_selfloop_network` has φ_s = −0.38198987262266504. Negative φ_s means
-reducible (`SystemIrreducibilityAnalysis.__bool__` is `phi > 0` at precision). `iitx`
-follows the oracle and documents the divergence from the paper's notation.
+log-ratio inside a positive part, `|·|₊`. The `feature/iit-4.0` branch (the 2023
+paper's code) does **not** clip — its published golden for
+`basic_noisy_selfloop_network` is φ_s = −0.38198987262266504 — while PyPhi `main`
+(2.0) restores the clamp (`SystemIrreducibilityAnalysis.__post_init__` applies
+`positive_part`, keeping the raw value as `signed_phi`; its fixture for the same
+network is φ_s = 0.0). Diagnosed from the mathematics: the paper's notation is
+explicit, so `main` is right and the branch diverged. `iitx` follows the paper and
+`main`: `SystemPhi.phi` is clamped, `SystemPhi.signed_phi` keeps the raw value
+(negative signed φ still means reducible, and still carries gradient signal).
 
 ## 2. Reducibility short-circuits the system MIP search
 
@@ -26,13 +29,17 @@ the minimum partition**, with its possibly-negative φ. The normalized-φ minimi
 reducible system (the fixture above selects cut #0, φ = −0.382, over the
 normalized-minimal cut, φ = −0.372).
 
-## 3. System-partition normalization counts distinct severed connections
+## 3. System-partition normalization: `cut_matrix.sum()` equals the paper's formula
 
-The paper (Eq. 23) writes the normalization as Σᵢ |S⁽ⁱ⁾||X⁽ⁱ⁾|. The implementation
-(`GeneralKCut.normalization_factor`) divides by `cut_matrix.sum()` — the number of
-**distinct** severed connections, i.e. the union of the blocks' cuts. The two differ
-whenever blocks' cut sets overlap (e.g. a bipartition with flags (↔, ↔) severs each
-cross edge once, not twice). The complete cut normalizes by `n`, not `n²`.
+The implementation (`GeneralKCut.normalization_factor`) divides by `cut_matrix.sum()`,
+the number of severed connections. An earlier version of this note claimed this
+diverges from the paper's Σᵢ |S⁽ⁱ⁾||X⁽ⁱ⁾| when blocks' cut sets overlap — **that claim
+was wrong** (corrected by the review in `pyphi-review.md`, finding R14): Eq. 16 defines
+X⁽ⁱ⁾ as the units whose inputs *to part i* are severed, so each severed edge is counted
+exactly once, by its destination part, and the two quantities are equal for every
+SET_UNI/BI partition (verified exhaustively for n ≤ 4). The genuine deviations are only
+the complete cut (normalized by `n`, an out-of-Θ special case) and the GENERAL scheme.
+iitx's `system_cuts` severed-edge count is correct under either reading.
 
 ## 4. Two different "unconstrained effect" conventions across theory versions
 
@@ -42,13 +49,16 @@ probability (Eq. 6) is the uniform average over interventions of the **joint**
 conditional — a correlated mixture, not a product. Both are correct in their own
 measure; conflating them silently shifts every ii value in 4.0 (or every EMD in 3.0).
 
-## 5. State enumeration order differs between PyPhi and iitx
+## 5. Specified-state ties: resolved by maximal φ_s, then PyPhi's state order
 
-PyPhi iterates candidate states via `itertools.product`, varying the **last** unit
-fastest; `iitx` enumerates in little-endian order, varying unit 0 fastest. Values are
-unaffected; the choice among exactly-tied specified states can differ. No golden fixture
-exercises this so far; if one does, the divergence is documented here rather than
-contorting the canonical order.
+Ties in the intrinsic information of candidate system states are not broken
+arbitrarily: per the S1 Text cascade (and PyPhi `main`'s behaviour, exposed by the
+`rule110` fixture, where the cause side ties at ii = 1.0 between (0,0,0) and (1,1,1)
+and only the latter yields φ_s = 2.0), the tied pair with **maximal φ_s** wins.
+Residual ties follow PyPhi's state-iteration order — `itertools.product`, the *last*
+unit varying fastest — which differs from iitx's canonical little-endian order, so the
+tie rank table `_oracle_rank` maps between them. Mechanism-level state ties follow the
+same cascade with congruence preference.
 
 ## 6. PyPhi's macro Φ cuts at the micro level
 

@@ -3,7 +3,7 @@
 import jax
 import jax.numpy as jnp
 
-__all__ = ["quantize"]
+__all__ = ["quantize", "strongly_connected"]
 
 
 def quantize(x: jax.Array, precision: float) -> jax.Array:
@@ -24,3 +24,28 @@ def quantize(x: jax.Array, precision: float) -> jax.Array:
 
 	"""
 	return jnp.round(x / precision) * precision
+
+
+def strongly_connected(cm: jax.Array, candidate: jax.Array) -> jax.Array:
+	"""Test strong connectivity of a candidate's units, in-graph.
+
+	A candidate that is not strongly connected has a part with no causes or no effects
+	in the rest, so its integrated information is null by definition — both theory
+	versions short-circuit on it.
+
+	Args:
+		cm: Connectivity matrix, shape ``(n, n)`` boolean.
+		candidate: Mask of the candidate's units, shape ``(n,)``.
+
+	Returns:
+		Boolean scalar: whether every candidate unit reaches every other along directed
+		connections within the candidate.
+
+	"""
+	n = cm.shape[0]
+	inside = candidate[:, None] & candidate[None, :]
+	sub = (cm & inside) | jnp.eye(n, dtype=bool)
+	reach = sub
+	for _ in range(n):
+		reach = reach | (jnp.matmul(reach, sub) > 0)
+	return jnp.all(reach | ~inside)

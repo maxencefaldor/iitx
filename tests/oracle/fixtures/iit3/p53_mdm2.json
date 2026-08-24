@@ -1,0 +1,462 @@
+{
+ "schema_version": 1,
+ "name": "p53_mdm2",
+ "description": "Multi-valued p53-Mdm2 regulatory network; P ternary, Mc/Mn binary; fixed point (P,Mc,Mn)=(0,0,1).",
+ "source": "pyphi.examples.gomez_p53_mdm2_substrate (Gomez et al. 2021, Entropy 23(1):6, Fig. 3A). No independent IIT 4.0 golden; PyPhi main is the only oracle for this fixture.",
+ "slow": false,
+ "oracle": {
+  "package": "pyphi",
+  "repository": "https://github.com/wmayner/pyphi",
+  "ref": "ce2b28321686e472650c8bbe118a19cef55ac555",
+  "version": "2.1.dev1632+gce2b28321",
+  "preset": "IIT_3_0",
+  "python": "3.14.7"
+ },
+ "conventions": {
+  "state_indexing": "little-endian; unit 0 is the least-significant (fastest-varying) digit; mixed-radix for non-binary alphabets",
+  "tpm": "state-by-state; tpm[i][j] = P(next=j | prev=i); rows and columns little-endian",
+  "repertoires": "flattened over purview units in ascending unit order, little-endian (first purview unit fastest); squeeze then ravel(order='F')",
+  "cm": "cm[i][j] == 1 means directed edge i -> j"
+ },
+ "network": {
+  "n_units": 3,
+  "alphabet": [
+   3,
+   2,
+   2
+  ],
+  "node_labels": [
+   "P",
+   "Mc",
+   "Mn"
+  ],
+  "tpm_state_by_state": [
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0
+   ]
+  ],
+  "cm": [
+   [
+    1,
+    1,
+    1
+   ],
+   [
+    1,
+    1,
+    1
+   ],
+   [
+    1,
+    1,
+    1
+   ]
+  ],
+  "state": [
+   0,
+   0,
+   1
+  ]
+ },
+ "results": {
+  "phi": 0.333333,
+  "mip_cut": {
+   "type": "DirectedBipartition",
+   "from_nodes": [
+    0,
+    2
+   ],
+   "to_nodes": [
+    1
+   ],
+   "direction": "EFFECT",
+   "num_connections_cut": 2
+  },
+  "num_concepts": 3,
+  "sum_small_phi": 0.916666,
+  "conceptual_info": 0.79861,
+  "concepts": [
+   {
+    "mechanism": [
+     0
+    ],
+    "phi": 0.333333,
+    "cause": {
+     "phi": 0.5,
+     "purview": [
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [],
+       "purview": [
+        2
+       ]
+      },
+      {
+       "mechanism": [
+        0
+       ],
+       "purview": []
+      }
+     ],
+     "purview_state": [
+      1
+     ],
+     "repertoire": [
+      0.0,
+      1.0
+     ],
+     "partitioned_repertoire": [
+      0.5,
+      0.5
+     ]
+    },
+    "effect": {
+     "phi": 0.333333,
+     "purview": [
+      1,
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [],
+       "purview": [
+        2
+       ]
+      },
+      {
+       "mechanism": [
+        0
+       ],
+       "purview": [
+        1
+       ]
+      }
+     ],
+     "purview_state": [
+      0,
+      1
+     ],
+     "repertoire": [
+      0.0,
+      0.0,
+      1.0,
+      0.0
+     ],
+     "partitioned_repertoire": [
+      0.3333333333333333,
+      0.0,
+      0.6666666666666666,
+      0.0
+     ]
+    }
+   },
+   {
+    "mechanism": [
+     1
+    ],
+    "phi": 0.333333,
+    "cause": {
+     "phi": 0.333333,
+     "purview": [
+      0
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [],
+       "purview": [
+        0
+       ]
+      },
+      {
+       "mechanism": [
+        1
+       ],
+       "purview": []
+      }
+     ],
+     "purview_state": [
+      0
+     ],
+     "repertoire": [
+      0.5,
+      0.5,
+      0.0
+     ],
+     "partitioned_repertoire": [
+      0.3333333333333333,
+      0.3333333333333333,
+      0.3333333333333333
+     ]
+    },
+    "effect": {
+     "phi": 0.333333,
+     "purview": [
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [],
+       "purview": [
+        2
+       ]
+      },
+      {
+       "mechanism": [
+        1
+       ],
+       "purview": []
+      }
+     ],
+     "purview_state": [
+      1
+     ],
+     "repertoire": [
+      0.6666666666666666,
+      0.3333333333333333
+     ],
+     "partitioned_repertoire": [
+      0.3333333333333333,
+      0.6666666666666666
+     ]
+    }
+   },
+   {
+    "mechanism": [
+     2
+    ],
+    "phi": 0.25,
+    "cause": {
+     "phi": 0.25,
+     "purview": [
+      1
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [],
+       "purview": [
+        1
+       ]
+      },
+      {
+       "mechanism": [
+        2
+       ],
+       "purview": []
+      }
+     ],
+     "purview_state": [
+      0
+     ],
+     "repertoire": [
+      0.25,
+      0.75
+     ],
+     "partitioned_repertoire": [
+      0.5,
+      0.5
+     ]
+    },
+    "effect": {
+     "phi": 0.5,
+     "purview": [
+      0
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [],
+       "purview": [
+        0
+       ]
+      },
+      {
+       "mechanism": [
+        2
+       ],
+       "purview": []
+      }
+     ],
+     "purview_state": [
+      0
+     ],
+     "repertoire": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "partitioned_repertoire": [
+      0.5,
+      0.0,
+      0.5
+     ]
+    }
+   }
+  ]
+ }
+}

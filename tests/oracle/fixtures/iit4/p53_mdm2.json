@@ -1,0 +1,348 @@
+{
+ "schema_version": 1,
+ "name": "p53_mdm2",
+ "description": "Multi-valued p53-Mdm2 regulatory network; P ternary, Mc/Mn binary; fixed point (P,Mc,Mn)=(0,0,1).",
+ "source": "pyphi.examples.gomez_p53_mdm2_substrate (Gomez et al. 2021, Entropy 23(1):6, Fig. 3A). No independent IIT 4.0 golden; PyPhi main is the only oracle for this fixture.",
+ "slow": false,
+ "oracle": {
+  "package": "pyphi",
+  "repository": "https://github.com/wmayner/pyphi",
+  "ref": "ce2b28321686e472650c8bbe118a19cef55ac555",
+  "version": "2.1.dev1632+gce2b28321",
+  "preset": "IIT_4_0_2023",
+  "python": "3.14.7"
+ },
+ "conventions": {
+  "state_indexing": "little-endian; unit 0 is the least-significant (fastest-varying) digit; mixed-radix for non-binary alphabets",
+  "tpm": "state-by-state; tpm[i][j] = P(next=j | prev=i); rows and columns little-endian",
+  "repertoires": "flattened over purview units in ascending unit order, little-endian (first purview unit fastest); squeeze then ravel(order='F')",
+  "cm": "cm[i][j] == 1 means directed edge i -> j"
+ },
+ "network": {
+  "n_units": 3,
+  "alphabet": [
+   3,
+   2,
+   2
+  ],
+  "node_labels": [
+   "P",
+   "Mc",
+   "Mn"
+  ],
+  "tpm_state_by_state": [
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0
+   ]
+  ],
+  "cm": [
+   [
+    1,
+    1,
+    1
+   ],
+   [
+    1,
+    1,
+    1
+   ],
+   [
+    1,
+    1,
+    1
+   ]
+  ],
+  "state": [
+   0,
+   0,
+   1
+  ]
+ },
+ "results": {
+  "phi_s": 0.0,
+  "normalized_phi": 0.0,
+  "reasons": null,
+  "mip": {
+   "type": "DirectedSetPartition",
+   "parts": [
+    [
+     0,
+     2
+    ],
+    [
+     1
+    ]
+   ],
+   "num_connections_cut": 2,
+   "repr_compact": "2 parts: {Mc,PMn}"
+  },
+  "system_state": {
+   "cause": {
+    "purview": [
+     0,
+     1,
+     2
+    ],
+    "state": [
+     0,
+     0,
+     1
+    ],
+    "intrinsic_information": 0.6666666666666666
+   },
+   "effect": {
+    "purview": [
+     0,
+     1,
+     2
+    ],
+    "state": [
+     0,
+     0,
+     1
+    ],
+    "intrinsic_information": 2.0
+   }
+  },
+  "num_distinctions": 1,
+  "sum_phi_d": 1.0,
+  "num_relations": 1,
+  "sum_phi_r": 0.5,
+  "big_phi": 1.5,
+  "distinctions": [
+   {
+    "mechanism": [
+     0
+    ],
+    "phi": 1.0,
+    "cause": {
+     "phi": 1.0,
+     "purview": [
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [
+        0
+       ],
+       "purview": []
+      },
+      {
+       "mechanism": [],
+       "purview": [
+        2
+       ]
+      }
+     ],
+     "purview_state": [
+      1
+     ],
+     "specified_state": {
+      "state": [
+       1
+      ],
+      "intrinsic_information": 1.0
+     }
+    },
+    "effect": {
+     "phi": 1.1699250014423124,
+     "purview": [
+      1,
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [
+        0
+       ],
+       "purview": []
+      },
+      {
+       "mechanism": [],
+       "purview": [
+        1,
+        2
+       ]
+      }
+     ],
+     "purview_state": [
+      0,
+      1
+     ],
+     "specified_state": {
+      "state": [
+       0,
+       1
+      ],
+      "intrinsic_information": 1.0
+     }
+    }
+   }
+  ]
+ }
+}

@@ -307,3 +307,28 @@ def _marginal_node_tpms(system: System) -> tuple[jax.Array, ...]:
 		selector = jnp.asarray(states[:, i][:, None] == jnp.arange(q), dtype=system.tpm.dtype)
 		marginals.append(jnp.reshape(system.tpm @ selector, (*system.shape, q), order="F"))
 	return tuple(marginals)
+
+
+def is_strongly_connected(system: System, units: tuple[int, ...] | None = None) -> bool:
+	"""Test whether a candidate's units are strongly connected under the connectivity.
+
+	A system that is not strongly connected has a part with no causes or no effects in
+	the rest, so its integrated information is zero by definition — both theory versions
+	short-circuit on this.
+
+	Args:
+		system: The system.
+		units: The candidate's units; ``None`` means all units.
+
+	Returns:
+		Whether every unit reaches every other along directed connections (a single unit
+		is trivially strongly connected).
+
+	"""
+	cm = np.asarray(connectivity(system))
+	index = np.asarray(sorted(units)) if units is not None else np.arange(system.n)
+	sub = cm[np.ix_(index, index)] | np.eye(len(index), dtype=bool)
+	reach = sub.copy()
+	for _ in range(len(index)):
+		reach = reach | (reach @ sub)
+	return bool(reach.all())

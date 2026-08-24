@@ -1,0 +1,488 @@
+{
+ "schema_version": 1,
+ "name": "fig8c",
+ "description": "IIT 4.0 paper Fig. 8C second deterministic 3-node system (demo-notebook tutorial system).",
+ "source": "feature/iit-4.0 docs/examples/IIT_4.0_demo.ipynb; published: phi_s=2.0, Phi=3.642982290404643 = sum_phi_d 1.792481250360578 (4 distinctions) + sum_phi_r 1.850501040044065 (9 relations)",
+ "slow": false,
+ "oracle": {
+  "package": "pyphi",
+  "repository": "https://github.com/wmayner/pyphi",
+  "ref": "ce2b28321686e472650c8bbe118a19cef55ac555",
+  "version": "2.1.dev1632+gce2b28321",
+  "preset": "IIT_3_0",
+  "python": "3.14.7"
+ },
+ "conventions": {
+  "state_indexing": "little-endian; unit 0 is the least-significant (fastest-varying) digit; mixed-radix for non-binary alphabets",
+  "tpm": "state-by-state; tpm[i][j] = P(next=j | prev=i); rows and columns little-endian",
+  "repertoires": "flattened over purview units in ascending unit order, little-endian (first purview unit fastest); squeeze then ravel(order='F')",
+  "cm": "cm[i][j] == 1 means directed edge i -> j"
+ },
+ "network": {
+  "n_units": 3,
+  "alphabet": [
+   2,
+   2,
+   2
+  ],
+  "node_labels": [
+   "A",
+   "B",
+   "C"
+  ],
+  "tpm_state_by_state": [
+   [
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0
+   ],
+   [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0
+   ]
+  ],
+  "cm": [
+   [
+    1,
+    1,
+    0
+   ],
+   [
+    0,
+    1,
+    1
+   ],
+   [
+    1,
+    1,
+    1
+   ]
+  ],
+  "state": [
+   1,
+   0,
+   0
+  ]
+ },
+ "results": {
+  "phi": 0.5625,
+  "mip_cut": {
+   "type": "DirectedBipartition",
+   "from_nodes": [
+    1
+   ],
+   "to_nodes": [
+    0,
+    2
+   ],
+   "direction": "EFFECT",
+   "num_connections_cut": 2
+  },
+  "num_concepts": 4,
+  "sum_small_phi": 1.0,
+  "conceptual_info": 1.0625,
+  "concepts": [
+   {
+    "mechanism": [
+     0
+    ],
+    "phi": 0.25,
+    "cause": {
+     "phi": 0.5,
+     "purview": [
+      0,
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [],
+       "purview": [
+        2
+       ]
+      },
+      {
+       "mechanism": [
+        0
+       ],
+       "purview": [
+        0
+       ]
+      }
+     ],
+     "purview_state": [
+      1,
+      0
+     ],
+     "repertoire": [
+      0.5,
+      0.0,
+      0.0,
+      0.5
+     ],
+     "partitioned_repertoire": [
+      0.25,
+      0.25,
+      0.25,
+      0.25
+     ]
+    },
+    "effect": {
+     "phi": 0.25,
+     "purview": [
+      1
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [],
+       "purview": [
+        1
+       ]
+      },
+      {
+       "mechanism": [
+        0
+       ],
+       "purview": []
+      }
+     ],
+     "purview_state": [
+      0
+     ],
+     "repertoire": [
+      0.25,
+      0.75
+     ],
+     "partitioned_repertoire": [
+      0.5,
+      0.5
+     ]
+    }
+   },
+   {
+    "mechanism": [
+     1
+    ],
+    "phi": 0.25,
+    "cause": {
+     "phi": 0.25,
+     "purview": [
+      0,
+      1,
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [],
+       "purview": [
+        2
+       ]
+      },
+      {
+       "mechanism": [
+        1
+       ],
+       "purview": [
+        0,
+        1
+       ]
+      }
+     ],
+     "purview_state": [
+      1,
+      0,
+      0
+     ],
+     "repertoire": [
+      0.25,
+      0.0,
+      0.0,
+      0.0,
+      0.25,
+      0.0,
+      0.25,
+      0.25
+     ],
+     "partitioned_repertoire": [
+      0.25,
+      0.0,
+      0.125,
+      0.125,
+      0.25,
+      0.0,
+      0.125,
+      0.125
+     ]
+    },
+    "effect": {
+     "phi": 0.5,
+     "purview": [
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [],
+       "purview": [
+        2
+       ]
+      },
+      {
+       "mechanism": [
+        1
+       ],
+       "purview": []
+      }
+     ],
+     "purview_state": [
+      0
+     ],
+     "repertoire": [
+      1.0,
+      0.0
+     ],
+     "partitioned_repertoire": [
+      0.5,
+      0.5
+     ]
+    }
+   },
+   {
+    "mechanism": [
+     2
+    ],
+    "phi": 0.25,
+    "cause": {
+     "phi": 0.5,
+     "purview": [
+      1
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [],
+       "purview": [
+        1
+       ]
+      },
+      {
+       "mechanism": [
+        2
+       ],
+       "purview": []
+      }
+     ],
+     "purview_state": [
+      0
+     ],
+     "repertoire": [
+      1.0,
+      0.0
+     ],
+     "partitioned_repertoire": [
+      0.5,
+      0.5
+     ]
+    },
+    "effect": {
+     "phi": 0.25,
+     "purview": [
+      1
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [],
+       "purview": [
+        1
+       ]
+      },
+      {
+       "mechanism": [
+        2
+       ],
+       "purview": []
+      }
+     ],
+     "purview_state": [
+      0
+     ],
+     "repertoire": [
+      0.25,
+      0.75
+     ],
+     "partitioned_repertoire": [
+      0.5,
+      0.5
+     ]
+    }
+   },
+   {
+    "mechanism": [
+     0,
+     1
+    ],
+    "phi": 0.25,
+    "cause": {
+     "phi": 0.5,
+     "purview": [
+      0,
+      1,
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [
+        0
+       ],
+       "purview": [
+        0,
+        1,
+        2
+       ]
+      },
+      {
+       "mechanism": [
+        1
+       ],
+       "purview": []
+      }
+     ],
+     "purview_state": [
+      1,
+      0,
+      0
+     ],
+     "repertoire": [
+      0.5,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.5
+     ],
+     "partitioned_repertoire": [
+      0.25,
+      0.0,
+      0.25,
+      0.0,
+      0.0,
+      0.25,
+      0.0,
+      0.25
+     ]
+    },
+    "effect": {
+     "phi": 0.25,
+     "purview": [
+      1,
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [
+        0
+       ],
+       "purview": [
+        1
+       ]
+      },
+      {
+       "mechanism": [
+        1
+       ],
+       "purview": [
+        2
+       ]
+      }
+     ],
+     "purview_state": [
+      0,
+      0
+     ],
+     "repertoire": [
+      0.0,
+      1.0,
+      0.0,
+      0.0
+     ],
+     "partitioned_repertoire": [
+      0.25,
+      0.75,
+      0.0,
+      0.0
+     ]
+    }
+   }
+  ]
+ }
+}

@@ -1,0 +1,511 @@
+{
+ "schema_version": 1,
+ "name": "rule110",
+ "description": "3-cell rule-110 cellular automaton ring ('magic cut' example).",
+ "source": "pyphi.examples.rule110_substrate; published: Phi=1.35708 [1.2.1 docs/examples/magic_cut.rst doctest]",
+ "slow": false,
+ "oracle": {
+  "package": "pyphi",
+  "repository": "https://github.com/wmayner/pyphi",
+  "ref": "ce2b28321686e472650c8bbe118a19cef55ac555",
+  "version": "2.1.dev1632+gce2b28321",
+  "preset": "IIT_4_0_2023",
+  "python": "3.14.7"
+ },
+ "conventions": {
+  "state_indexing": "little-endian; unit 0 is the least-significant (fastest-varying) digit; mixed-radix for non-binary alphabets",
+  "tpm": "state-by-state; tpm[i][j] = P(next=j | prev=i); rows and columns little-endian",
+  "repertoires": "flattened over purview units in ascending unit order, little-endian (first purview unit fastest); squeeze then ravel(order='F')",
+  "cm": "cm[i][j] == 1 means directed edge i -> j"
+ },
+ "network": {
+  "n_units": 3,
+  "alphabet": [
+   2,
+   2,
+   2
+  ],
+  "node_labels": [
+   "A",
+   "B",
+   "C"
+  ],
+  "tpm_state_by_state": [
+   [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  ],
+  "cm": [
+   [
+    1,
+    1,
+    1
+   ],
+   [
+    1,
+    1,
+    1
+   ],
+   [
+    1,
+    1,
+    1
+   ]
+  ],
+  "state": [
+   0,
+   0,
+   0
+  ]
+ },
+ "results": {
+  "phi_s": 2.0,
+  "normalized_phi": 0.4,
+  "reasons": null,
+  "mip": {
+   "type": "DirectedSetPartition",
+   "parts": [
+    [
+     0
+    ],
+    [
+     1
+    ],
+    [
+     2
+    ]
+   ],
+   "num_connections_cut": 5,
+   "repr_compact": "3 parts: {A,B,C}"
+  },
+  "system_state": {
+   "cause": {
+    "purview": [
+     0,
+     1,
+     2
+    ],
+    "state": [
+     1,
+     1,
+     1
+    ],
+    "intrinsic_information": 1.0
+   },
+   "effect": {
+    "purview": [
+     0,
+     1,
+     2
+    ],
+    "state": [
+     0,
+     0,
+     0
+    ],
+    "intrinsic_information": 2.0
+   }
+  },
+  "num_distinctions": 4,
+  "sum_phi_d": 6.245112497836531,
+  "num_relations": 11,
+  "sum_phi_r": 12.245112497836532,
+  "big_phi": 18.490224995673064,
+  "distinctions": [
+   {
+    "mechanism": [
+     0,
+     1
+    ],
+    "phi": 1.4150374992788437,
+    "cause": {
+     "phi": 1.4150374992788437,
+     "purview": [
+      0,
+      1,
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [
+        0,
+        1
+       ],
+       "purview": []
+      },
+      {
+       "mechanism": [],
+       "purview": [
+        0,
+        1,
+        2
+       ]
+      }
+     ],
+     "purview_state": [
+      0,
+      0,
+      0
+     ],
+     "specified_state": {
+      "state": [
+       1,
+       1,
+       1
+      ],
+      "intrinsic_information": 1.0
+     }
+    },
+    "effect": {
+     "phi": 1.4150374992788437,
+     "purview": [
+      0
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [
+        0,
+        1
+       ],
+       "purview": []
+      },
+      {
+       "mechanism": [],
+       "purview": [
+        0
+       ]
+      }
+     ],
+     "purview_state": [
+      0
+     ],
+     "specified_state": {
+      "state": [
+       0
+      ],
+      "intrinsic_information": 1.4150374992788437
+     }
+    }
+   },
+   {
+    "mechanism": [
+     0,
+     2
+    ],
+    "phi": 1.4150374992788437,
+    "cause": {
+     "phi": 1.4150374992788437,
+     "purview": [
+      0,
+      1,
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [
+        0,
+        2
+       ],
+       "purview": []
+      },
+      {
+       "mechanism": [],
+       "purview": [
+        0,
+        1,
+        2
+       ]
+      }
+     ],
+     "purview_state": [
+      0,
+      0,
+      0
+     ],
+     "specified_state": {
+      "state": [
+       1,
+       1,
+       1
+      ],
+      "intrinsic_information": 1.0
+     }
+    },
+    "effect": {
+     "phi": 1.4150374992788437,
+     "purview": [
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [
+        0,
+        2
+       ],
+       "purview": []
+      },
+      {
+       "mechanism": [],
+       "purview": [
+        2
+       ]
+      }
+     ],
+     "purview_state": [
+      0
+     ],
+     "specified_state": {
+      "state": [
+       0
+      ],
+      "intrinsic_information": 1.4150374992788437
+     }
+    }
+   },
+   {
+    "mechanism": [
+     1,
+     2
+    ],
+    "phi": 1.4150374992788437,
+    "cause": {
+     "phi": 1.4150374992788437,
+     "purview": [
+      0,
+      1,
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [
+        1,
+        2
+       ],
+       "purview": []
+      },
+      {
+       "mechanism": [],
+       "purview": [
+        0,
+        1,
+        2
+       ]
+      }
+     ],
+     "purview_state": [
+      0,
+      0,
+      0
+     ],
+     "specified_state": {
+      "state": [
+       1,
+       1,
+       1
+      ],
+      "intrinsic_information": 1.0
+     }
+    },
+    "effect": {
+     "phi": 1.4150374992788437,
+     "purview": [
+      1
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [
+        1,
+        2
+       ],
+       "purview": []
+      },
+      {
+       "mechanism": [],
+       "purview": [
+        1
+       ]
+      }
+     ],
+     "purview_state": [
+      0
+     ],
+     "specified_state": {
+      "state": [
+       0
+      ],
+      "intrinsic_information": 1.4150374992788437
+     }
+    }
+   },
+   {
+    "mechanism": [
+     0,
+     1,
+     2
+    ],
+    "phi": 2.0,
+    "cause": {
+     "phi": 2.122556248918266,
+     "purview": [
+      0,
+      1,
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [
+        0,
+        1,
+        2
+       ],
+       "purview": []
+      },
+      {
+       "mechanism": [],
+       "purview": [
+        0,
+        1,
+        2
+       ]
+      }
+     ],
+     "purview_state": [
+      0,
+      0,
+      0
+     ],
+     "specified_state": {
+      "state": [
+       1,
+       1,
+       1
+      ],
+      "intrinsic_information": 1.0
+     }
+    },
+    "effect": {
+     "phi": 2.0,
+     "purview": [
+      0,
+      1,
+      2
+     ],
+     "mip_partition": [
+      {
+       "mechanism": [
+        0
+       ],
+       "purview": [
+        0,
+        2
+       ]
+      },
+      {
+       "mechanism": [
+        1,
+        2
+       ],
+       "purview": [
+        1
+       ]
+      },
+      {
+       "mechanism": [],
+       "purview": []
+      }
+     ],
+     "purview_state": [
+      0,
+      0,
+      0
+     ],
+     "specified_state": {
+      "state": [
+       0,
+       0,
+       0
+      ],
+      "intrinsic_information": 2.0
+     }
+    }
+   }
+  ]
+ }
+}

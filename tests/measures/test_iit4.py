@@ -92,15 +92,16 @@ class TestSystemPhi:
 		result = system_phi(paper_network(), jnp.asarray([1, 0, 1]))
 		assert float(result.phi) == pytest.approx(0.0, abs=1e-10)
 
-	def test_noisy_selfloop_network_has_negative_phi(self) -> None:
+	def test_noisy_selfloop_network_is_reducible(self) -> None:
 		"""Test φ_s of the noisy self-loop network at (1,0,0).
 
-		Golden: φ_s = -0.38198987262266504 — negative, because the oracle does not clip
-		the log-ratio at zero (the paper's |·|₊ notwithstanding); negative φ_s means
-		reducible.
+		The 2023-paper branch published φ_s = -0.38198987262266504; the primary oracle
+		(and the paper's |·|₊) clamps the reported φ at zero while keeping the signed
+		value — reducibility with gradient signal intact.
 		"""
 		result = system_phi(basic_noisy_selfloop_network(), jnp.asarray([1, 0, 0]))
-		assert float(result.phi) == pytest.approx(-0.38198987262266504, abs=1e-10)
+		assert float(result.phi) == pytest.approx(0.0, abs=1e-10)
+		assert float(result.signed_phi) == pytest.approx(-0.38198987262266504, abs=1e-10)
 
 
 class TestTransformations:
@@ -133,7 +134,7 @@ class TestTransformations:
 		batched = jax.vmap(system_phi, in_axes=(0, None))(stacked, state)
 
 		assert float(batched.phi[0]) == pytest.approx(0.41503749927884376, abs=1e-10)
-		assert float(batched.phi[1]) == pytest.approx(-0.38198987262266504, abs=1e-10)
+		assert float(batched.signed_phi[1]) == pytest.approx(-0.38198987262266504, abs=1e-10)
 
 	def test_grad_with_respect_to_tpm(self) -> None:
 		"""Test that φ_s differentiates w.r.t. the TPM, against finite differences.
@@ -144,7 +145,7 @@ class TestTransformations:
 		system, state = basic_noisy_selfloop_network(), jnp.asarray([1, 0, 0])
 
 		def phi_of(tpm: jax.Array) -> jax.Array:
-			return system_phi(System(tpm=tpm, shape=system.shape, cm=system.cm), state).phi
+			return system_phi(System(tpm=tpm, shape=system.shape, cm=system.cm), state).signed_phi
 
 		gradient = jax.grad(phi_of)(system.tpm)
 		assert bool(jnp.all(jnp.isfinite(gradient)))
