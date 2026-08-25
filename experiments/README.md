@@ -36,3 +36,4 @@ docs. The background and literature review are in
 | [`e00_gradient_audit.ipynb`](e00_gradient_audit.ipynb) | Which ascent objective can we trust — exact subgradient, soft, or annealed — and where do they disagree? | done |
 | [`e01_n3_atlas.ipynb`](e01_n3_atlas.ipynb) | The complete φ_s atlas of 3-unit binary systems: what does the theory reward, and does gradient ascent find it? | done |
 | [`e02_exploit_survival.ipynb`](e02_exploit_survival.ipynb) | Does the frozen-state exploit survive the 2026 cap, reachability weighting, and scaling in n — and what are ascent's needles really? | done |
+| [`e03_one_ibit_ceiling.ipynb`](e03_one_ibit_ceiling.ipynb) | Why 2026 ascent crowds 1 ibit at n = 3: the cause-surprisal crossing, the attained 1.000000, and the ≈0.6·log₂ n growth of the 2026 ceiling | done |

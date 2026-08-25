@@ -30,10 +30,13 @@ occupation kills isolation but not freezing: the weighted optimum (3.0 ibits) is
 globally attracting fixed point. Gradient ascent beats evolution-style and random
 baselines at matched budget but is blind to the frozen plateau, converging instead
 to interior "needle" optima that turn out to be *transit states* — strongly caused,
-strongly causing, never dwelling — while ascent on the 2026 objective itself finds
-stochastic systems crowding an apparent ceiling of exactly 1 ibit, in a landscape
-where enumeration of deterministic systems is blind by construction. Every number
-reported as φ is exact; maximizers were re-verified against PyPhi to 10⁻¹⁵.
+strongly causing, never dwelling. Ascent on the 2026 objective itself, in a landscape
+where enumeration of deterministic systems is blind by construction, attains the 2026
+optimum exactly: 1.000000 ibit at n = 3, bound by the cause surprisal at specified-
+state probability ½, with the size-ceiling growing only as ≈ 0.6·log₂ n over
+n = 2–5. The revision thus demotes maximal integrated information from quadratic to
+apparently logarithmic growth in system size. Every number reported as φ is exact;
+maximizers were re-verified against PyPhi to 10⁻¹⁵.
 
 ## 1. Introduction
 
@@ -172,14 +175,22 @@ the dynamics passes *through* rather than halts at — a qualitatively different
 high-φ architecture, and at 4.885 ibits it outscores every deterministic system
 outside the frozen plateau. The 2026 cap eliminates these too (≤ 0.018).
 
-**What the current theory's gradient rewards.** Exact-subgradient ascent on the 2026
-objective (1,024 seeds × 600 steps, 11 s) reaches φ_s(2026) = 0.999996, with the
-endpoint distribution crowding an apparent ceiling of exactly 1 ibit — 18× the
-largest value in the oracle's own example set. The best endpoints are genuinely
-stochastic (the exemplar holds its state with probability 0.29). Since the 2026
-landscape assigns zero to every deterministic system, it is interior-only:
-enumeration is blind there by construction, and gradient methods are not merely the
-scalable instrument but the only one.
+**What the current theory's gradient rewards (experiment e03).** Exact-subgradient
+ascent on the 2026 objective reaches φ_s(2026) = 1.000000 exactly at n = 3, and the
+mechanism is clean: the cap's binding term at every top endpoint is the *cause
+surprisal* at specified-state probability exactly ½ (φ = −log₂ p_c = 1), the
+crossing point where surprisal — which falls as the state becomes likely, and zeroes
+every deterministic system — meets the intrinsic information rising against it. A
+stress campaign (~12,000 ascent seeds over longer runs and wider initializations,
+plus 2 million random systems) found nothing above 1 ibit at n = 3. The ceiling
+*scales*, however: best values 0.629, 1.000, 1.208, 1.383 at n = 2, 3, 4, 5, each
+binding through the cause surprisal (p_c = 0.646, 0.500, 0.433, 0.383), consistent
+with ≈ 0.6·log₂ n growth (the n ≥ 4 runs are less converged, so these are lower
+bounds and the constant is soft; the sublinearity is not). The values are 18–25× the
+largest in the oracle's own example set, and the best endpoints are genuinely
+stochastic. Since the 2026 landscape assigns zero to every deterministic system, it
+is interior-only: enumeration is blind there by construction, and gradient methods
+are not merely the scalable instrument but the only one.
 
 ## 5. Discussion
 
@@ -190,9 +201,12 @@ not trim the deterministic landscape, it deletes it, canonical textbook examples
 included. A theory whose 2023 formalism says the most integrated 3-unit systems are
 deterministic and frozen (6 ibits, growing as n(n−1)) and whose 2026 formalism says
 every deterministic system whatsoever has zero system-integrated information has not
-refined its extension so much as replaced it. Which behavior is intended is for the
-theory's authors to say; what the atlas contributes is that the question is now
-posed with complete evidence rather than examples.
+refined its extension so much as replaced it. The growth classes make the contrast
+quantitative: maximal φ_s grows as n(n−1) under 2023 and as ≈ 0.6·log₂ n under 2026
+— the revision changes not just which systems win but how much integration a system
+of a given size can have, by two asymptotic classes. Which behavior is intended is
+for the theory's authors to say; what the atlas contributes is that the question is
+now posed with complete evidence rather than examples.
 
 **Occupancy is a separate axis from the cap.** Reachability weighting — arguably the
 minimal operationalization of "the state must actually occur" — independently

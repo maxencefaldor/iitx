@@ -134,13 +134,3 @@ If you use `iitx` in your research, please cite it (see also
 	year = {2026},
 }
 ```
-
-## 🤝 Contributing
-
-Contributions are welcome — see
-[CONTRIBUTING](https://github.com/maxencefaldor/iitx/blob/main/.github/CONTRIBUTING.md).
-Start from the design documents; the tests define correctness.
-
-## License
-
-[MIT](https://github.com/maxencefaldor/iitx/blob/main/LICENSE)
