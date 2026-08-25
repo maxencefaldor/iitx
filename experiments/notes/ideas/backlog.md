@@ -2,7 +2,15 @@
 
 Candidates, roughly ordered. Each becomes a notebook when it is next.
 
-- **The separable-DP collapse of the cut minimization** (from the QIIA analysis;
+- **The set-partition DP over the block family** (e13's surviving candidate).
+  Separability exact (1.7×10⁻¹⁶ vs internals), Dinkelbach sound, free relaxation
+  refuted (median gap 0.056, 0% tight) — so the polynomial collapse, if real,
+  is a DP over partitions-with-per-pair-modes (the family P1 characterized
+  exactly). Design the DP state (parts built incrementally; mode profile
+  couples S_j across parts), bound its cost, verify against iitx. Also: fold the
+  corrected specification semantics (pair chosen by maximal intrinsic
+  information, not maximal MIP value) into any future reimplementation.
+- **(superseded by e13)** the separable-DP collapse of the cut minimization (from the QIIA analysis;
   HIGH STAKES). The per-cut value is unit-separable (Σ_j c_j(S_j) with c_j from
   the subset-marginal tables) and the severed normalization is partition-
   separable, so Dinkelbach + minimum-cost set-partition DP (O(3^n), polynomial in
