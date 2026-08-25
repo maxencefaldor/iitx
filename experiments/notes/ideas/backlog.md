@@ -2,6 +2,17 @@
 
 Candidates, roughly ordered. Each becomes a notebook when it is next.
 
+- **A Quantum Integrated Information Algorithm (QIIA) — algorithms-paper sketch.**
+  Apparently unwritten (the quantum-IIT literature generalizes the *definition* to
+  quantum substrates, not the computation of classical Φ). Ingredients: amplitude-
+  encode repertoires (n qubits for 2^n states); CI dynamics as local channels via
+  Stinespring dilation; Dürr–Høyer minimum-finding over cuts and max-finding over
+  specified states (quadratic speedups); quantum divergence estimation for the
+  scalar functionals. Net: exponent halving (~2^(n/2) vs 2^n for φ_s), no change of
+  complexity class (the partition axis stays super-exponential under √, and the
+  MIP core is NP-flavored — no exponential quantum speedup expected). Low priority:
+  quadratic-only, far-future hardware; classical structure (analytic relations,
+  gradients-not-enumeration) buys more today. But plausibly a novel short paper.
 - **The MIP-surprisal crossing family** (e10 + e11): three optima now share one
   structure — the n = 2 2026 ceiling (0.64004660), the repaired measure's
   stochastic ceiling at n = 3 (≥ 1.3916), and possibly higher n — all sit where
