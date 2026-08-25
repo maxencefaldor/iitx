@@ -2,6 +2,22 @@
 
 Candidates, roughly ordered. Each becomes a notebook when it is next.
 
+- **The separable-DP collapse of the cut minimization** (from the QIIA analysis;
+  HIGH STAKES). The per-cut value is unit-separable (Σ_j c_j(S_j) with c_j from
+  the subset-marginal tables) and the severed normalization is partition-
+  separable, so Dinkelbach + minimum-cost set-partition DP (O(3^n), polynomial in
+  TPM size) may compute exact φ_s without enumerating the 2^Θ(n log n) cuts —
+  an exponential (in n) classical gain that would outrun the QIIA. Hinges on the
+  SET scheme's direction-tag structure admitting a DP state. Verify empirically
+  (e13), then prove or refute.
+- **Tractable islands with universal span.** (a) Exchangeable systems: cuts
+  collapse to integer partitions, p(n) ~ e^(c√n). (b) Bounded-degree,
+  bounded-treewidth systems: conjecture poly(n) exact φ_s via graphical-model DP
+  — and the class contains rule 110 (in-degree 3, treewidth 2), hence spans all
+  computable behavior. (c) The negative: metric density with φ-control is blocked
+  by needle geometry (capacity attainers are isolated by the characterization
+  theorem). Triple = a paper: "φ is easy on a class rich enough to compute
+  anything."
 - **(drafted as `paper/quantum-phi.md` + e12)** the QIIA paper. Remaining opens: prove Conjecture 1 (K_n = Θ(Fubini), bijectively) and Conjecture 2 (succinct NP-hardness reduction). Original sketch:
   Apparently unwritten (the quantum-IIT literature generalizes the *definition* to
   quantum substrates, not the computation of classical Φ). Ingredients: amplitude-
