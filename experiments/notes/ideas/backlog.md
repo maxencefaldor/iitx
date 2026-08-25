@@ -2,6 +2,19 @@
 
 Candidates, roughly ordered. Each becomes a notebook when it is next.
 
+- **The ~1-ibit unfolding floor** (from e04). Strictly behavior-pinned descent
+  bottoms out at φ_s ≈ 1.0 at n = 4 and sits there for 900 steps. Real floor
+  (this behavior *needs* ~1 ibit) or optimizer stuck? Test: restarts from the floor,
+  basin-hopping, and pinning a *feedforward-realizable* behavior (whose floor should
+  be 0). Note the value's echo of e03's 1-ibit ceiling is across different
+  objectives (2023 vs 2026) — probably coincidence, but check.
+- **Paper 2 candidate — "what the measures cannot see."** e04's three dissociations
+  in one experiment: φ_s is behaviorally almost-free (90% removable at 0.5% error),
+  architecturally invisible (input-dependence unchanged under ten-fold φ removal),
+  and internally dissociated (big Φ *rises* 22.2 → 24.3 while φ_s falls 10.6 → 1.0;
+  IIT 3.0 moves −7%). With e06's phenomenology this is a coherent second story,
+  distinct from the landscape paper.
+
 - **Close the 2026 growth law** (from e03). The ceiling is cause-surprisal-bound at
   every measured n with φ = −log₂ p_c and p_c = 0.646, 0.500, 0.433, 0.383 for
   n = 2..5 (≈ 0.6·log₂ n). Three follow-ups: derive the n = 3 optimum in closed form

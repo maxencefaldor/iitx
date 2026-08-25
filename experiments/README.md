@@ -37,3 +37,4 @@ docs. The background and literature review are in
 | [`e01_n3_atlas.ipynb`](e01_n3_atlas.ipynb) | The complete φ_s atlas of 3-unit binary systems: what does the theory reward, and does gradient ascent find it? | done |
 | [`e02_exploit_survival.ipynb`](e02_exploit_survival.ipynb) | Does the frozen-state exploit survive the 2026 cap, reachability weighting, and scaling in n — and what are ascent's needles really? | done |
 | [`e03_one_ibit_ceiling.ipynb`](e03_one_ibit_ceiling.ipynb) | Why 2026 ascent crowds 1 ibit at n = 3: the cause-surprisal crossing, the attained 1.000000, and the ≈0.6·log₂ n growth of the 2026 ceiling | done |
+| [`e04_unfolding_descent.ipynb`](e04_unfolding_descent.ipynb) | Unfolding by gradient: 90% of φ_s removed at 0.5% behavior error within a fixed architecture — with a ~1-ibit floor, unchanged wiring, and big Φ *rising* as φ_s collapses | done |
