@@ -47,9 +47,11 @@ number reported as φ is exact; maximizers were re-verified against PyPhi to 10�
 IIT's structural claims — that integration favors determinism, specialization, and
 fault-line-free architectures — have been established from hand-built examples,
 exhaustive analysis of a few chosen systems, and evolutionary simulations. The
-field's only direct optimization of Φ used prior-guided random search, arguing that
-gradients "cannot be extracted" from so discontinuous an objective [Garrido-Merchán
-& Sánchez-Cañizares 2022]. Meanwhile the strongest critiques of IIT (Aaronson's
+field's only direct optimization of Φ treated it as a black-box objective whose
+gradients "we are not able to extract" (Garrido-Merchán & Sánchez-Cañizares 2022,
+§2.3), arguing further that "the smallest variation on any elements of the TPM
+matrix can make Φ jump from ℝ to ∅," violating even Bayesian optimization's
+Lipschitz assumption — so random search was the method of last resort. Meanwhile the strongest critiques of IIT (Aaronson's
 expander construction; the unfolding argument of Doerig et al.) contend that the
 *definition* rewards structures the *theory* does not intend.
 
@@ -82,7 +84,8 @@ precision — IIT 4.0 exact to 10⁻⁹, including non-binary systems).
 **The gradient, audited (experiment e00).** The exact signed φ_s gradient matches
 central differences to median relative error 1.4×10⁻¹⁰ (worst of 512 probes:
 2.4×10⁻⁸) and is finite at a maximally tie-degenerate symmetric point. This
-directly falsifies the claim that Φ gradients cannot be extracted: φ_s is piecewise
+directly falsifies the black-box classification (the quoted §2.3 claim that
+gradients cannot be extracted): φ_s is piecewise
 smooth — a min/max over *enumerated* discrete selections — and Danskin's theorem
 does the rest. The audit also quantified the softmin surrogate `soft_system_phi`:
 its bias plateaus at ≈0.06 ibits for temperatures τ ≥ 0.03 and only vanishes below

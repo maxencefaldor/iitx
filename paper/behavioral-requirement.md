@@ -43,7 +43,10 @@ cannot test IIT. Its published form is an existence claim that expands the netwo
 IIT's defenders reply that within a *fixed* substrate the claim is unestablished.
 Both positions have lacked an instrument: deciding what behavior does or does not
 require, at fixed resources, is an optimization problem over the space of systems —
-intractable for black-box search, and Φ was long presumed non-differentiable.
+intractable for black-box search, and Φ was long treated as gradient-free (the
+only direct optimization study classified it as a black-box objective whose
+gradients "we are not able to extract" — Garrido-Merchán & Sánchez-Cañizares 2022,
+§2.3).
 
 iitx removes the obstacle: exact IIT 4.0 quantities, differentiable almost
 everywhere with exact subgradients (validated against finite differences at 10⁻¹⁰,
