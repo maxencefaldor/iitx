@@ -21,6 +21,11 @@ Candidates, roughly ordered. Each becomes a notebook when it is next.
   prove attainability for n ≥ 3 (empirical so far); characterize the n = 2 optimum
   (bound not attained, both surprisals bind at 0.63); check whether ii_e/surp_e/MIP
   ever force a strictly smaller ceiling above n = 2; what do the optima *compute*.
+- **Ising follow-ups** (from e05). Extend K beyond 3 to confirm 2023's saturation
+  value in the ordered phase; track the 2026 peak-vs-crossover gap as n grows (it
+  widened from n = 4 to n = 5 — does the optimum stay at O(1) coupling while the
+  crossover moves?); a 2D lattice via black-boxing, where a true phase transition
+  exists.
 - **e03 (done) — the 1-ibit ceiling.** e02's 2026-objective ascent endpoints crowd
   φ_s(2026) = 1.0 at n = 3 (best 0.999996 of 1,024 seeds). Derive the bound from the
   rectified-surprisal cap (the optimum should balance informativeness against
