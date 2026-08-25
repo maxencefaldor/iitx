@@ -156,7 +156,14 @@ ground truth is unreachable from the outside.
 
 **For the unfolding debate.** Both strong positions fail quantitatively. The
 refined statement: every behavior has a certified integration price R(b) ∈ [0, 2+]
-ibits at this size — sometimes zero, never bounding the surplus.
+ibits at this size — sometimes zero, never bounding the surplus. And the
+qualitative half is not specific to φ_s: a two-paragraph trichotomy
+(`experiments/notes/computational-blindness.md`) shows that any computable measure
+is trivial, or not behavior-determined, or scores some feedforward system — so
+*every* nontrivial measure satisfying the irreducibility axiom is blind to
+computational content at unbounded size, and the entire computation–Φ coupling at
+fixed size is exactly R(b). The empirical exclamation point: rule 110, a universal
+computer, has φ_s = 0 at 31 of its 32 states (e14).
 
 **The constructive turn.** R(b) itself is well-defined, certified by a control, and
 computable only with gradients (17 seconds per floor on a laptop CPU at n = 4). Its
