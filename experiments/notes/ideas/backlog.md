@@ -2,6 +2,18 @@
 
 Candidates, roughly ordered. Each becomes a notebook when it is next.
 
+- **"A universal computer with no φ" — the P3 datum** (e14). Rule 110 on rings:
+  φ_s = 0 at 31/32 states, 2.0 at one. Feeds paper 2's decoupling story; check
+  larger rings and the occupation-weighted value (the attractor states' φ);
+  find what the one special state is doing.
+- **Phantom-connection normalization quirk** (e14): the severed count includes
+  nonexistent connections, so sparse systems' MIP selection can depend on wires
+  that are not there. Report as a formalization note; check whether PyPhi
+  behaves identically (it should — same convention) and whether cm-masked
+  normalization changes any e01-class results.
+- **Symmetry canonicalization redo** (e14-P1): proper directed-mode-graph
+  isomorphism classes for exchangeable systems; then the exact class-count
+  growth (integer-partition flavored) and the p(n)-cost exchangeable φ_s.
 - **The set-partition DP over the block family** (e13's surviving candidate).
   Separability exact (1.7×10⁻¹⁶ vs internals), Dinkelbach sound, free relaxation
   refuted (median gap 0.056, 0% tight) — so the polynomial collapse, if real,
