@@ -2,7 +2,13 @@
 
 Candidates, roughly ordered. Each becomes a notebook when it is next.
 
-- **The ~1-ibit unfolding floor** (from e04). Strictly behavior-pinned descent
+- **The behavioral φ-requirement as an object of study** (e08 established the
+  floor is real, behavior-specific, 0–2.08 ibits, with a validated control; the
+  ~1-ibit echo of e03 was coincidence). Next questions: what behavioral features
+  predict the floor (hidden-memory depth? visible-entropy?); how floors scale with
+  n and horizon K; floors under the 2026 objective.
+- **(done as e08)** the ~1-ibit unfolding floor (from e04).
+  Original item: Strictly behavior-pinned descent
   bottoms out at φ_s ≈ 1.0 at n = 4 and sits there for 900 steps. Real floor
   (this behavior *needs* ~1 ibit) or optimizer stuck? Test: restarts from the floor,
   basin-hopping, and pinning a *feedforward-realizable* behavior (whose floor should
