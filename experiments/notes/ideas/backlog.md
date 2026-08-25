@@ -2,6 +2,19 @@
 
 Candidates, roughly ordered. Each becomes a notebook when it is next.
 
+- **Adversarial axiomatics II** (from e09 + `../metatheorems.md`): prove the
+  cause-capped ceiling formula max_m min((1/m)log₂(Q/m), log₂ m) and its
+  n-scaling (n = 3 value equals C(3) = 1 — same cause-surprisal crossing as the
+  2026 stochastic optimum: coincidence or common theorem?); close the attainment
+  sufficiency condition; the fixed-state cap-free impossibility candidate (is
+  delta saturation always maximal?); battery spot-checks at n = 4; stochastic
+  battery (the deterministic universe is only the enumerable slice).
+- **"Only per level": determinism, stochasticity, and emergence** (from the
+  quantum-events discussion): T4 + the macro computation (deterministic micro
+  rules generically give macro φ_s(2026) up to 0.70) yield the corollary that
+  IIT-2026 consciousness in a deterministic world is necessarily emergent; "no
+  noiseless system is conscious" is a theorem, "needs quantum" is not. Write as a
+  discussion subsection of the landscape paper or a standalone short note.
 - **The behavioral φ-requirement as an object of study** (e08 established the
   floor is real, behavior-specific, 0–2.08 ibits, with a validated control; the
   ~1-ibit echo of e03 was coincidence). Next questions: what behavioral features
