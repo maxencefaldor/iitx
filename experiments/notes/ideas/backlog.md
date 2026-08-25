@@ -15,11 +15,12 @@ Candidates, roughly ordered. Each becomes a notebook when it is next.
   IIT 3.0 moves −7%). With e06's phenomenology this is a coherent second story,
   distinct from the landscape paper.
 
-- **Close the 2026 growth law** (from e03). The ceiling is cause-surprisal-bound at
-  every measured n with φ = −log₂ p_c and p_c = 0.646, 0.500, 0.433, 0.383 for
-  n = 2..5 (≈ 0.6·log₂ n). Three follow-ups: derive the n = 3 optimum in closed form
-  (ascent attains exactly 1.000000 at p_c = ½); converge n = 4–6 with bigger budgets
-  to pin the law; characterize what the 2026 optima *compute* (attractors, logic).
+- **Close the 2026 growth law** (from e03; ceiling now PROVEN — see
+  `../ceiling-theorem.md`: φ_s(2026) ≤ C(n), root of t·2^t = n − t, exact 1 at
+  n = 3, C(n) ~ log₂n − log₂log₂n; verified to 3×10⁻⁵ at n = 4). Remaining:
+  prove attainability for n ≥ 3 (empirical so far); characterize the n = 2 optimum
+  (bound not attained, both surprisals bind at 0.63); check whether ii_e/surp_e/MIP
+  ever force a strictly smaller ceiling above n = 2; what do the optima *compute*.
 - **e03 (done) — the 1-ibit ceiling.** e02's 2026-objective ascent endpoints crowd
   φ_s(2026) = 1.0 at n = 3 (best 0.999996 of 1,024 seeds). Derive the bound from the
   rectified-surprisal cap (the optimum should balance informativeness against

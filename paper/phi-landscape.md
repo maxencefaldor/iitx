@@ -32,11 +32,12 @@ baselines at matched budget but is blind to the frozen plateau, converging inste
 to interior "needle" optima that turn out to be *transit states* — strongly caused,
 strongly causing, never dwelling. Ascent on the 2026 objective itself, in a landscape
 where enumeration of deterministic systems is blind by construction, attains the 2026
-optimum exactly: 1.000000 ibit at n = 3, bound by the cause surprisal at specified-
-state probability ½, with the size-ceiling growing only as ≈ 0.6·log₂ n over
-n = 2–5. The revision thus demotes maximal integrated information from quadratic to
-apparently logarithmic growth in system size. Every number reported as φ is exact;
-maximizers were re-verified against PyPhi to 10⁻¹⁵.
+optimum exactly — and the optimum has a closed form: we prove φ_s(2026) ≤ C(n), the
+unique root of t·2^t = n − t, from the cause side of the cap alone, giving exactly
+1 ibit at n = 3 (attained by ascent to six decimals) and logarithmic growth
+C(n) = log₂n − log₂log₂n + o(1). The revision thus provably demotes maximal
+integrated information from quadratic to logarithmic growth in system size. Every
+number reported as φ is exact; maximizers were re-verified against PyPhi to 10⁻¹⁵.
 
 ## 1. Introduction
 
@@ -182,13 +183,22 @@ surprisal* at specified-state probability exactly ½ (φ = −log₂ p_c = 1), t
 crossing point where surprisal — which falls as the state becomes likely, and zeroes
 every deterministic system — meets the intrinsic information rising against it. A
 stress campaign (~12,000 ascent seeds over longer runs and wider initializations,
-plus 2 million random systems) found nothing above 1 ibit at n = 3. The ceiling
-*scales*, however: best values 0.629, 1.000, 1.208, 1.383 at n = 2, 3, 4, 5, each
-binding through the cause surprisal (p_c = 0.646, 0.500, 0.433, 0.383), consistent
-with ≈ 0.6·log₂ n growth (the n ≥ 4 runs are less converged, so these are lower
-bounds and the constant is soft; the sublinearity is not). The values are 18–25× the
-largest in the oracle's own example set, and the best endpoints are genuinely
-stochastic. Since the 2026 landscape assigns zero to every deterministic system, it
+plus 2 million random systems) found nothing above 1 ibit at n = 3 — and the ceiling
+is a theorem. The cause repertoire is a Bayes posterior under the theory's own
+uniform prior, which collapses the cause informativeness to ii_c = p(n + log₂ p), a
+function of the specified state's probability p alone; together with the surprisal
+−log₂ p, the cause side of the cap is bounded by their crossing, giving
+**φ_s(2026) ≤ C(n), the unique positive root of t·2^t = n − t** for any binary
+system in any state (log₂|Ω| in place of n for general alphabets). C(3) = 1 exactly
+(1·2¹ = 3 − 1); integer ceilings recur at n = k(2^k + 1) (C(10) = 2, C(27) = 3);
+asymptotically C(n) = log₂ n − log₂ log₂ n + o(1). Ascent attains the bound at
+n = 3, 4, 5 (measured 1.000000, 1.208219, 1.383296 vs C = 1.000000, 1.208250,
+1.384635 — the n = 4 agreement is 3×10⁻⁵), each optimum sitting at the predicted
+p_c = 2^(−C(n)); only n = 2 falls short (0.629 < 0.747), where both surprisals bind
+jointly. The effect side admits no such universal bound (its unconstrained
+repertoire is system-dependent), which is *why* the binding term is always the cause
+surprisal. The values are 18–25× the largest in the oracle's own example set, and
+the best endpoints are genuinely stochastic. Since the 2026 landscape assigns zero to every deterministic system, it
 is interior-only: enumeration is blind there by construction, and gradient methods
 are not merely the scalable instrument but the only one.
 
@@ -202,9 +212,10 @@ included. A theory whose 2023 formalism says the most integrated 3-unit systems 
 deterministic and frozen (6 ibits, growing as n(n−1)) and whose 2026 formalism says
 every deterministic system whatsoever has zero system-integrated information has not
 refined its extension so much as replaced it. The growth classes make the contrast
-quantitative: maximal φ_s grows as n(n−1) under 2023 and as ≈ 0.6·log₂ n under 2026
-— the revision changes not just which systems win but how much integration a system
-of a given size can have, by two asymptotic classes. Which behavior is intended is
+quantitative and provable: maximal φ_s grows as n(n−1) under 2023 and is capped at
+C(n) ~ log₂ n under 2026 (a theorem, exact at n = 3) — the revision changes not just
+which systems win but how much integration a system of a given size can have, by two
+asymptotic classes. Which behavior is intended is
 for the theory's authors to say; what the atlas contributes is that the question is
 now posed with complete evidence rather than examples.
 
