@@ -21,6 +21,15 @@ Candidates, roughly ordered. Each becomes a notebook when it is next.
   prove attainability for n ≥ 3 (empirical so far); characterize the n = 2 optimum
   (bound not attained, both surprisals bind at 0.63); check whether ii_e/surp_e/MIP
   ever force a strictly smaller ceiling above n = 2; what do the optima *compute*.
+- **The tie gap vs the annealing floor** (from e06). The maximin ridge (several
+  cuts tied at convergence) failed to appear at n = 4: the endpoint tie gap
+  (0.0085) sits at the final annealing temperature's scale (0.005). Test: continue
+  optimization past the schedule with exact subgradient ascent (τ = 0) and see
+  whether the gap then closes (real ridge) or widens further (no ridge).
+- **Distinction loss during ascent** (from e06). The median climbing seed loses a
+  distinction while big Φ doubles: which mechanisms die, and is the loss the same
+  funneling that raises degeneracy? Cross-reference with the transit-state
+  architecture.
 - **Ising follow-ups** (from e05). Extend K beyond 3 to confirm 2023's saturation
   value in the ordered phase; track the 2026 peak-vs-crossover gap as n grows (it
   widened from n = 4 to n = 5 — does the optimum stay at O(1) coupling while the
