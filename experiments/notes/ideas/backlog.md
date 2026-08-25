@@ -21,6 +21,11 @@ Candidates, roughly ordered. Each becomes a notebook when it is next.
   prove attainability for n ≥ 3 (empirical so far); characterize the n = 2 optimum
   (bound not attained, both surprisals bind at 0.63); check whether ii_e/surp_e/MIP
   ever force a strictly smaller ceiling above n = 2; what do the optima *compute*.
+- **The gradient's radius of validity** (from e07). First-order Taylor fails to
+  rank full edge lesions even on the graded basic network (Spearman 0.10): lesions
+  cross MIP switches the local gradient cannot see. Find the perturbation scale
+  lambda* below which gradient prediction recovers (sweep lambda down, watch the
+  rank correlation), and relate it to the cell size of the piecewise landscape.
 - **The tie gap vs the annealing floor** (from e06). The maximin ridge (several
   cuts tied at convergence) failed to appear at n = 4: the endpoint tie gap
   (0.0085) sits at the final annealing temperature's scale (0.005). Test: continue
@@ -30,11 +35,13 @@ Candidates, roughly ordered. Each becomes a notebook when it is next.
   distinction while big Φ doubles: which mechanisms die, and is the loss the same
   funneling that raises degeneracy? Cross-reference with the transit-state
   architecture.
-- **Ising follow-ups** (from e05). Extend K beyond 3 to confirm 2023's saturation
-  value in the ordered phase; track the 2026 peak-vs-crossover gap as n grows (it
-  widened from n = 4 to n = 5 — does the optimum stay at O(1) coupling while the
-  crossover moves?); a 2D lattice via black-boxing, where a true phase transition
-  exists.
+- **Ising follow-ups** (from e05) — QUEUED next, per project lead, as an expansion
+  of the e05 notebook: extend K beyond 3 to confirm 2023's saturation value in the
+  ordered phase; track the 2026 peak-vs-crossover gap as n grows (it widened from
+  n = 4 to n = 5 — does the optimum stay at O(1) coupling while the crossover
+  moves?); a 3×3 lattice, exact micro thermodynamics (512-state chain),
+  coarse-grained to three 4-symbol row-units for macro-level φ — the black-boxing
+  frontier, and the only place a true 2D transition can appear.
 - **e03 (done) — the 1-ibit ceiling.** e02's 2026-objective ascent endpoints crowd
   φ_s(2026) = 1.0 at n = 3 (best 0.999996 of 1,024 seeds). Derive the bound from the
   rectified-surprisal cap (the optimum should balance informativeness against
