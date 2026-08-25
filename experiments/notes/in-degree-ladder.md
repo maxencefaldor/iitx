@@ -40,9 +40,12 @@ specified cause state's partitioned likelihood under the complete cut:
 1. Prove the threshold: why does the achievable suppression drop from 2^(−severed)
    to 1/Q at m = 3 (= Q/2 − 1 at n = 3? = 3 absolutely? the n = 4 ladder decides).
 2. Prove the cliff (m ≥ 6 ⇒ reducible) and its n-scaling.
-3. The n = 4 ladder by targeted per-m search: candidate laws to discriminate —
-   plateau boundary at m ≤ 2 vs m ≤ Q/4, second plateau value n vs log₂ Q, cliff
-   at Q − 2 vs 3Q/4.
+3. The n = 4 ladder by targeted per-m search: **e11's first attempt failed its
+   own anchor test** (search g̃(1) = 4.245 vs the known g(1) = 12 from all-OR):
+   minterm-saturated rung winners are unreachable by random + single-bit hill
+   climbing. Requeued with constructive seeding from the exact characterization
+   (build per-m candidates satisfying the double-minterm conditions as nearly as
+   m allows).
 4. Consequence for the repaired measure: its deterministic ceiling is
    max_m min(g(m), log₂ m); with the empirical g this is exactly 1 at n = 3.
    Its growth in n follows from g's.

@@ -2,6 +2,15 @@
 
 Candidates, roughly ordered. Each becomes a notebook when it is next.
 
+- **The MIP-surprisal crossing family** (e10 + e11): three optima now share one
+  structure — the n = 2 2026 ceiling (0.64004660), the repaired measure's
+  stochastic ceiling at n = 3 (≥ 1.3916), and possibly higher n — all sit where
+  the uncapped MIP equals the cause surprisal. Derive the family: symbolic n = 2
+  first (tractable), then the general crossing equations.
+- **The n = 4 ladder, constructively seeded** (e11): build per-m rung candidates
+  from the exact double-minterm characterization instead of random search; the
+  anchor tests (g(1) = 12 via all-OR; g(2) vs the weighted search's [3.5, 6.0])
+  are already in place.
 - **The weighted-deterministic growth law, reopened** (e10). The "= n" conjecture
   was an n = 3 coincidence (n(n−1)/2 = n only there). Global attraction forces
   in-degree ≥ 2 at the attractor, so the ladder bounds the weighted max by

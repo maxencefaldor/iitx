@@ -47,6 +47,15 @@ ties) selects the complete cut: φ_s = n(n−1). ∎
 
 ## Remarks
 
+- **Attainment characterized exactly (e11).** By whole-universe enumeration at
+  n = 3, φ_s = n(n−1) **iff** the analyzed state's transition is doubly
+  minterm-saturated: unique preimage u*; each unit's output from s realized by
+  exactly one cross-input configuration; and each unit's output realized exactly
+  once among prior states agreeing with u* on that unit's self-input. The class
+  (3,584 frozen-isolated + 7 deterministic-transit systems) is exactly the
+  equality set of the capacity lemma on both sides — set equality verified with
+  zero exceptions. General-n proof of the iff: conjectured, forward direction
+  provable by the all-OR-style saturation computation.
 - **Interpretation: φ_s(2023) is bounded by the wiring capacity of the cut.** One
   ibit per severable binary connection; the maximizer saturates every connection of
   every cut at once — it is a *perfect maximin equalizer*, which retroactively

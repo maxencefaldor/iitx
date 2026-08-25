@@ -29,11 +29,10 @@ deterministic universe.
 - **M3 (the frozen class is selection-invariant). By enumeration.** The 3,591
   capacity attainers under normalized selection are *exactly* the maximizers under
   raw selection (e09): the isolation pathology is created by delta-repertoire
-  saturation, not by the severed-count normalization. Partial characterization:
-  attainment *requires* unique cause (in-degree 1) and cross-minterm effect (each
-  unit's output realized by exactly one cross-input configuration) — necessary,
-  proven by enumeration with zero exceptions; sufficiency needs an additional
-  per-cut cause-saturation condition, exact form open. The class contains both
+  saturation, not by the severed-count normalization. Characterization now **exact**
+  (e11): attainment ⟺ unique preimage u* + cross-minterm effect at s + cause
+  minterm at u* (each unit's output realized once among states agreeing with u*
+  on its self-input) — set equality with zero exceptions over 16.7M systems. The class contains both
   frozen-isolated states (3,584) and deterministic transit states (7), unifying
   with e02's stochastic transit needles.
 - **M4 (occupancy fixes isolation, not freezing). By enumeration (e02).**
