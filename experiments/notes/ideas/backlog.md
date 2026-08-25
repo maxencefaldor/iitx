@@ -2,6 +2,17 @@
 
 Candidates, roughly ordered. Each becomes a notebook when it is next.
 
+- **The weighted-deterministic growth law, reopened** (e10). The "= n" conjecture
+  was an n = 3 coincidence (n(n−1)/2 = n only there). Global attraction forces
+  in-degree ≥ 2 at the attractor, so the ladder bounds the weighted max by
+  g(2) = n(n−1)/2; e10's in-tree search at n = 4 found only 2.33 of that bound's
+  6.0 — either the m = 2 rung is incompatible with global attraction (the n = 3
+  rung winner contains a 2-cycle) or the search was weak. Needs a stronger search
+  seeded by ladder-rung structures, and the n = 4 ladder itself.
+- **The n = 2 closed form** (e10). At the n = 2 2026 optimum, MIP = surp_c =
+  surp_e (triple point, verified to 2.5×10⁻⁴): with two units the MIP is
+  symbolically tractable — derive φ*(2) = 0.64004660 from the triple-point
+  equations.
 - **Adversarial axiomatics II** (from e09 + `../metatheorems.md`): prove the
   cause-capped ceiling formula max_m min((1/m)log₂(Q/m), log₂ m) and its
   n-scaling (n = 3 value equals C(3) = 1 — same cause-surprisal crossing as the

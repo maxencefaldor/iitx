@@ -70,12 +70,14 @@ observations that the binding side is always the cause and that p_c marches down
   size (against n(n−1) under 2023 — a change of growth class, now provable rather
   than measured). The empirical "≈ 0.6·log₂ n" of e03 was this law seen through a
   4-point window.
-- **Attainability.** C(n) is an upper bound; ascent attains it at n = 3, 4, 5
-  (above). At n = 2 the best found is 0.6285 < C(2) = 0.7468, with *both*
-  surprisals binding at the optimum (p_c ≈ p_e ≈ 0.646): with only two units, the
-  effect side and the uncapped MIP apparently cannot reach the cause crossing.
-  Characterizing the n = 2 optimum, and proving attainability for n ≥ 3, remain
-  open.
+- **Attainability.** C(n) is an upper bound; ascent attains it at n = 3, 4, 5,
+  and e10's refined certificates close the gaps to 1.1×10⁻⁶, 2.1×10⁻⁵, 6.7×10⁻⁵
+  respectively, with n = 6 reaching 99.8% of C(6) from eight seeds. At n = 2 the
+  polished optimum is 0.64004660 < C(2) = 0.7468 and is a **triple point**: the
+  uncapped 2023 MIP equals φ to eight decimals with both surprisals 2.5×10⁻⁴
+  above it (p_c ≈ p_e ≈ 0.6416 = 2^(−φ)) — the two-unit MIP is symbolically
+  tractable, so a closed form for the n = 2 ceiling is within reach. Proving
+  attainability for n ≥ 3 (beyond certified numerics) remains open.
 - **Sharpening.** The bound uses only two of the cap's four terms. Whether ii_e /
   surp_e / the uncapped MIP force a strictly smaller ceiling at some sizes (as at
   n = 2) is the remaining question; empirically they do not for n = 3–5.
