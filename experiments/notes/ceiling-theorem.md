@@ -79,3 +79,14 @@ observations that the binding side is always the cause and that p_c marches down
 - **Sharpening.** The bound uses only two of the cap's four terms. Whether ii_e /
   surp_e / the uncapped MIP force a strictly smaller ceiling at some sizes (as at
   n = 2) is the remaining question; empirically they do not for n = 3–5.
+
+## Corollary: determinism is fatal (now a theorem, not a sweep)
+
+For any deterministic system in any state, φ_s(2026) = 0. *Proof:* the effect
+repertoire is a point mass on the actual successor state, so the specified effect
+state (the ii_e-maximizer — every other state has p = 0, hence ii = 0) is the
+successor with p_e = 1, giving effect surprisal −log₂ 1 = 0; the rectified cap is
+therefore 0, and φ_s ≤ 0. ∎ This is the one-paragraph explanation of e02's
+whole-universe result (16.7M zeros) and of the reference oracle's own 2026 fixture
+set (all deterministic networks exactly 0.0); spot-checked further on random
+deterministic systems at n = 4, 5.

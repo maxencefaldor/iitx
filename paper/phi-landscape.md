@@ -20,8 +20,10 @@ measure, no sampling. (2) *Exact gradient ascent on φ_s*, validated against fin
 differences at 10⁻¹⁰ relative error. The landscape's verdict is sharp: the true
 maximum under the 2023 formalism is exactly 6.0 ibits, attained by 651 equivalence
 classes of systems whose analyzed state is a **frozen, self-confirming fixed point
-reachable only from itself** — and the construction generalizes, growing as n(n−1),
-one ibit per severed connection. The 2026 revision of the theory does not merely cap
+reachable only from itself** — and the construction generalizes: we prove
+φ_s(2023) ≤ n(n−1) for *every* system, deterministic or stochastic (one ibit per
+connection severed by the complete cut), attained by the all-OR family, which
+saturates the capacity bound on every cut simultaneously. The 2026 revision of the theory does not merely cap
 this exploit — **it zeroes the entire deterministic universe**: all 16.7M systems
 score φ_s = 0 under the 2026 rectified-surprisal cap, consistent with the reference
 implementation's own fixtures, so the property the 2023 formalism rewards
@@ -136,10 +138,16 @@ interior needles, not vertex approaches.
 
 ## 4. Does the exploit survive? (experiment e02)
 
-**The construction scales quadratically (2023).** The all-OR system — every unit the
-OR of all inputs, making the all-off state an isolated fixed point — realizes the
-frozen-isolation exploit analytically and attains φ_s = n(n−1) exactly at n = 3, 4,
-5, 6 (6, 12, 20, 30 ibits), with φ_c = φ_e = n throughout. This corrected our own
+**The construction scales quadratically (2023) — and n(n−1) is a theorem.** The
+partitioned effect repertoire retains the actual severed-input configuration with
+weight 2^(−k), so every cut's φ is at most its severed-connection count: for *any*
+binary system in any state, φ_s(2023) ≤ n(n−1), the wiring capacity of the complete
+cut. The all-OR system — every unit the OR of all inputs, making the all-off state
+an isolated fixed point — attains the bound (measured exactly at n = 3, 4, 5, 6:
+6, 12, 20, 30 ibits, with φ_c = φ_e = n throughout), and does so as a *perfect
+maximin equalizer*: its normalized φ equals 1.000000 on every one of the 22 / 150 /
+1,061 cuts at n = 3 / 4 / 5, which is why the maximal plateau sits gapped away from
+the rest of the landscape. This corrected our own
 initial reading of the 6.0 maximum as an "information ceiling 2·log₂ Q" (a
 coincidence at n = 3, where 2n = n(n−1) and also φ_c + φ_e = 6): the 2023 φ_s is the
 unnormalized value of the minimal cut and grows as one ibit per connection severed
@@ -153,8 +161,8 @@ is a property of the formalism, not of our implementation: in the pinned referen
 oracle's own 2026 fixture set, every deterministic network (including the IIT
 literature's canonical examples — the basic network, Fig. 4, Fig. 8C, Rule 110,
 XOR) scores exactly 0.0, and only the stochastic fixtures are positive. The
-mechanism is the rectified surprisal in the cap: a deterministic transition makes
-the specified effect's surprisal zero. The two formalisms thus *maximally* disagree
+mechanism is a one-paragraph theorem: a deterministic transition makes the specified
+effect state's probability 1, its surprisal −log₂ 1 = 0, and the rectified cap 0. The two formalisms thus *maximally* disagree
 about the deterministic universe — the entire 2023 landscape, including its
 quadratically growing maximum, lives exactly where the 2026 landscape is identically
 zero.
@@ -212,8 +220,9 @@ included. A theory whose 2023 formalism says the most integrated 3-unit systems 
 deterministic and frozen (6 ibits, growing as n(n−1)) and whose 2026 formalism says
 every deterministic system whatsoever has zero system-integrated information has not
 refined its extension so much as replaced it. The growth classes make the contrast
-quantitative and provable: maximal φ_s grows as n(n−1) under 2023 and is capped at
-C(n) ~ log₂ n under 2026 (a theorem, exact at n = 3) — the revision changes not just
+quantitative and provable in closed form on both sides: maximal φ_s is exactly
+n(n−1) under 2023 (capacity bound, attained by all-OR) and at most C(n) ~ log₂ n
+under 2026 (exact at n = 3, attained empirically at n = 3–5) — the revision changes not just
 which systems win but how much integration a system of a given size can have, by two
 asymptotic classes. Which behavior is intended is
 for the theory's authors to say; what the atlas contributes is that the question is
