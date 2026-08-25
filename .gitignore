@@ -20,3 +20,6 @@ site/
 # Custom
 .env
 output/
+
+# Experiment artifacts: large arrays regenerable from the notebooks
+experiments/data/
