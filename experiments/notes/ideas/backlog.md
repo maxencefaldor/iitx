@@ -2,7 +2,7 @@
 
 Candidates, roughly ordered. Each becomes a notebook when it is next.
 
-- **A Quantum Integrated Information Algorithm (QIIA) — algorithms-paper sketch.**
+- **(drafted as `paper/quantum-phi.md` + e12)** the QIIA paper. Remaining opens: prove Conjecture 1 (K_n = Θ(Fubini), bijectively) and Conjecture 2 (succinct NP-hardness reduction). Original sketch:
   Apparently unwritten (the quantum-IIT literature generalizes the *definition* to
   quantum substrates, not the computation of classical Φ). Ingredients: amplitude-
   encode repertoires (n qubits for 2^n states); CI dynamics as local channels via
