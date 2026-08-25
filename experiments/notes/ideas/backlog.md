@@ -1,6 +1,21 @@
 # Experiment backlog
 
-Candidates beyond e00/e01, roughly ordered. Each becomes a notebook when it is next.
+Candidates, roughly ordered. Each becomes a notebook when it is next.
+
+- **e03 — the 1-ibit ceiling.** e02's 2026-objective ascent endpoints crowd
+  φ_s(2026) = 1.0 at n = 3 (best 0.999996 of 1,024 seeds). Derive the bound from the
+  rectified-surprisal cap (the optimum should balance informativeness against
+  surprisal, p ≈ 1/2 territory) or refute it; establish its n-scaling. Since the
+  2026 landscape is interior-only (all deterministic systems score 0 — oracle-
+  confirmed), this is gradient-first territory by construction.
+- **Transit states.** e02 showed ascent's 2023 needles are not soft-frozen: the
+  analyzed state has ~0 dwell probability and ~0.87 in-flow — strongly caused,
+  strongly causing, never staying. Characterize the architecture (it, not the frozen
+  state, may be the theory-relevant 2023 maximizer at 4.885 ibits) and its
+  Φ-structure.
+- **Weighted ascent.** Ascend E_s[φ_s] under the occupation measure directly (the
+  stationary distribution of a stochastic system is differentiable); compare against
+  e02's weighted atlas winner (reachable frozen state, 3.0 ibits).
 
 - **e02 — ascent phenomenology at n=4.** The mechanistic predictions from
   `docs/notes/phi-optimization.md` §3, each falsifiable: determinism–degeneracy plane
