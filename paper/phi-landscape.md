@@ -237,6 +237,21 @@ fixes are orthogonal, and neither yields the "rich dynamic structure" reading of
 maximal integration: under 2023-weighted it is a reachable halt state; under 2026 it
 is calibrated stochasticity near a 1-ibit ceiling.
 
+**Does the theory require indeterminism? Only per level.** The determinism
+theorem invites a tempting inference — if no deterministic system has φ_s(2026) > 0
+and physics were deterministic, consciousness would seem to require quantum chance.
+The inference fails inside the theory's own machinery: coarse-graining deterministic
+micro dynamics generically yields stochastic macro TPMs with *positive* macro
+φ_s(2026) — measured up to 0.70 (70% of C(3)) for random deterministic 9-unit rules
+coarse-grained to three 4-symbol units, with only special orders (majority freezing,
+pure shifts) remaining at zero. What follows instead is stranger: under the 2026
+formalism, a strictly deterministic world can host integrated information only at
+emergent, coarse-grained levels — the deterministic micro level scores exactly zero,
+so exclusion pushes every complex upward. "No noiseless system is conscious" is a
+theorem of the current formalism; "consciousness needs quantum events" is not (it
+would additionally require rejecting the theory's macro doctrine and adopting a
+collapse interpretation of quantum mechanics).
+
 Three points stand independent of the formalism-version specifics.
 
 **Ground truth changes the epistemics.** Claims about "what maximizes Φ" have until
