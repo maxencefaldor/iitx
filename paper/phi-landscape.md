@@ -21,12 +21,19 @@ differences at 10⁻¹⁰ relative error. The landscape's verdict is sharp: the 
 maximum under the 2023 formalism is exactly 6.0 ibits, attained by 651 equivalence
 classes of systems whose analyzed state is a **frozen, self-confirming fixed point
 reachable only from itself** — and the construction generalizes, growing as n(n−1),
-one ibit per severed connection. The 2026 revision of the theory caps this exploit
-to ⟨E02-CAP-PLATEAU⟩, and weighting φ_s by long-run state occupation collapses it to
-⟨E02-WEIGHTED-PLATEAU⟩. Gradient ascent beats evolution-style and random baselines
-at matched budget but is blind to the frozen plateau, converging instead to interior
-"needle" optima that ⟨E02-NEEDLE-VERDICT⟩. Every number reported as φ is exact;
-maximizers were re-verified against PyPhi to 10⁻¹⁵.
+one ibit per severed connection. The 2026 revision of the theory does not merely cap
+this exploit — **it zeroes the entire deterministic universe**: all 16.7M systems
+score φ_s = 0 under the 2026 rectified-surprisal cap, consistent with the reference
+implementation's own fixtures, so the property the 2023 formalism rewards
+quadratically (determinism) is fatal under 2026. Weighting φ_s by long-run state
+occupation kills isolation but not freezing: the weighted optimum (3.0 ibits) is a
+globally attracting fixed point. Gradient ascent beats evolution-style and random
+baselines at matched budget but is blind to the frozen plateau, converging instead
+to interior "needle" optima that turn out to be *transit states* — strongly caused,
+strongly causing, never dwelling — while ascent on the 2026 objective itself finds
+stochastic systems crowding an apparent ceiling of exactly 1 ibit, in a landscape
+where enumeration of deterministic systems is blind by construction. Every number
+reported as φ is exact; maximizers were re-verified against PyPhi to 10⁻¹⁵.
 
 ## 1. Introduction
 
@@ -125,23 +132,77 @@ interior needles, not vertex approaches.
 
 ## 4. Does the exploit survive? (experiment e02)
 
-⟨E02-SECTION: 2026 sweep results, weighted-atlas results, n(n−1) table for
-n = 3..6, needle forensics, 2026-objective ascent.⟩
+**The construction scales quadratically (2023).** The all-OR system — every unit the
+OR of all inputs, making the all-off state an isolated fixed point — realizes the
+frozen-isolation exploit analytically and attains φ_s = n(n−1) exactly at n = 3, 4,
+5, 6 (6, 12, 20, 30 ibits), with φ_c = φ_e = n throughout. This corrected our own
+initial reading of the 6.0 maximum as an "information ceiling 2·log₂ Q" (a
+coincidence at n = 3, where 2n = n(n−1) and also φ_c + φ_e = 6): the 2023 φ_s is the
+unnormalized value of the minimal cut and grows as one ibit per connection severed
+by the complete cut — *quadratically, without bound relative to any per-state
+information measure*.
 
-Known before e02 ran (measured in a design probe, declared as such in the
-notebook): the e01 winner scores φ_s = 0.0 under the 2026 cap and big Φ = 0.335
-under IIT 3.0; the all-OR system realizes the frozen-isolation construction
-analytically and attains 6.0 at n = 3 and 12.0 at n = 4 — refuting our own initial
-"information ceiling 2·log₂ Q" reading of the 6.0 result (a coincidence at n = 3)
-in favor of φ_s = n(n−1): one ibit per connection severed by the complete cut,
-quadratic growth through frozen isolation.
+**The 2026 revision zeroes the deterministic universe.** Re-sweeping all 16,777,216
+systems under `version="2026"` (175 s) yields a maximum of 0.000000: every
+deterministic 3-unit system is reducible under the intrinsic-information cap. This
+is a property of the formalism, not of our implementation: in the pinned reference
+oracle's own 2026 fixture set, every deterministic network (including the IIT
+literature's canonical examples — the basic network, Fig. 4, Fig. 8C, Rule 110,
+XOR) scores exactly 0.0, and only the stochastic fixtures are positive. The
+mechanism is the rectified surprisal in the cap: a deterministic transition makes
+the specified effect's surprisal zero. The two formalisms thus *maximally* disagree
+about the deterministic universe — the entire 2023 landscape, including its
+quadratically growing maximum, lives exactly where the 2026 landscape is identically
+zero.
+
+**Reachability weighting kills isolation, not freezing.** Using the atlas's implicit
+all-states values (the conjugation lookup of §2), we re-scored every system by φ_s
+averaged over its long-run occupation from a uniform start. The isolated plateau
+collapses (weighted score ≤ 1.5, median 0.75), but the weighted maximum — 3.0 ibits —
+is attained by a system whose single fixed point attracts *every* trajectory: a
+reachable frozen state. The self-confirming stationary state remains the optimum
+when the state must occur; only its unreachability is penalized.
+
+**The needles are transit states, not soft-frozen ones.** Reproducing e01's ascent
+and interrogating its top 32 endpoints (φ_s 4.85–4.89) refuted our pre-registered
+expectation: the analyzed state is almost never a fixed point (median dwell
+probability ≈ 10⁻⁵) and has massive in-flow (median maximal inflow ≈ 0.87). These
+are states strongly implied by their causes and strongly implying their effects that
+the dynamics passes *through* rather than halts at — a qualitatively different
+high-φ architecture, and at 4.885 ibits it outscores every deterministic system
+outside the frozen plateau. The 2026 cap eliminates these too (≤ 0.018).
+
+**What the current theory's gradient rewards.** Exact-subgradient ascent on the 2026
+objective (1,024 seeds × 600 steps, 11 s) reaches φ_s(2026) = 0.999996, with the
+endpoint distribution crowding an apparent ceiling of exactly 1 ibit — 18× the
+largest value in the oracle's own example set. The best endpoints are genuinely
+stochastic (the exemplar holds its state with probability 0.29). Since the 2026
+landscape assigns zero to every deterministic system, it is interior-only:
+enumeration is blind there by construction, and gradient methods are not merely the
+scalable instrument but the only one.
 
 ## 5. Discussion
 
-⟨E02-DEPENDENT: finalize after e02 — the 2026-vindication claim, the
-reachability-weighted maximizers, and what ascent's needles are.⟩
+**The revision both fixes and inverts.** The 2026 cap was evidently designed to
+bound φ_s by intrinsic information, and it succeeds against the frozen-isolation
+exploit — comprehensively. But the whole-universe re-score reveals the cost: it does
+not trim the deterministic landscape, it deletes it, canonical textbook examples
+included. A theory whose 2023 formalism says the most integrated 3-unit systems are
+deterministic and frozen (6 ibits, growing as n(n−1)) and whose 2026 formalism says
+every deterministic system whatsoever has zero system-integrated information has not
+refined its extension so much as replaced it. Which behavior is intended is for the
+theory's authors to say; what the atlas contributes is that the question is now
+posed with complete evidence rather than examples.
 
-Three points stand independent of e02's specifics.
+**Occupancy is a separate axis from the cap.** Reachability weighting — arguably the
+minimal operationalization of "the state must actually occur" — independently
+dissolves the *isolation* pathology while leaving the *freezing* one intact (a
+globally attracting fixed point tops the weighted landscape at 3.0 ibits). The two
+fixes are orthogonal, and neither yields the "rich dynamic structure" reading of
+maximal integration: under 2023-weighted it is a reachable halt state; under 2026 it
+is calibrated stochasticity near a 1-ibit ceiling.
+
+Three points stand independent of the formalism-version specifics.
 
 **Ground truth changes the epistemics.** Claims about "what maximizes Φ" have until
 now rested on examples. At n = 3 they can rest on enumeration: every deterministic
@@ -174,8 +235,10 @@ iitx 0.1.0 (`pip install iitx`), Python 3.14, JAX 0.11.1, float64 on CPU (Apple
 M2). Oracle: PyPhi `main` @ ce2b2832, pinned in `tests/oracle/generate`. All
 experiments are executed, committed notebooks under `experiments/` with
 pre-registered predictions in the first cell and verdicts in the last: e00
-(gradient audit), e01 (atlas), e02 (exploit survival). Runtimes: full sweep 171 s;
-canonicalization 19 s; 10,240-seed ascent 89 s; each baseline ~65 s.
+(gradient audit), e01 (atlas), e02 (exploit survival). Runtimes: full sweep 171 s
+(2026 re-sweep 175 s); canonicalization 19 s; all-states reachability re-score of
+both versions 48 s; 10,240-seed ascent 89 s; each baseline ~65 s; 1,024-seed ascent
+on the 2026 objective 11 s.
 
 ## References
 
