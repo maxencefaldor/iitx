@@ -35,13 +35,12 @@ Candidates, roughly ordered. Each becomes a notebook when it is next.
   distinction while big Φ doubles: which mechanisms die, and is the loss the same
   funneling that raises degeneracy? Cross-reference with the transit-state
   architecture.
-- **Ising follow-ups** (from e05) — QUEUED next, per project lead, as an expansion
-  of the e05 notebook: extend K beyond 3 to confirm 2023's saturation value in the
-  ordered phase; track the 2026 peak-vs-crossover gap as n grows (it widened from
-  n = 4 to n = 5 — does the optimum stay at O(1) coupling while the crossover
-  moves?); a 3×3 lattice, exact micro thermodynamics (512-state chain),
-  coarse-grained to three 4-symbol row-units for macro-level φ — the black-boxing
-  frontier, and the only place a true 2D transition can appear.
+- **Macro criticality follow-ups** (from e05 Part II — the level-dependence
+  result: micro φ23 saturates with order, macro φ peaks near the transition).
+  Larger lattices (4×4 black-boxed harder) and alternative groupings/temporal
+  grains (`steps > 1`); does the macro peak track the true critical coupling as
+  size grows? Also: a better finite-size crossover estimator than the d⟨m²⟩/dK
+  proxy (it pinned to the boundary at n = 2 and made P6 untestable).
 - **e03 (done) — the 1-ibit ceiling.** e02's 2026-objective ascent endpoints crowd
   φ_s(2026) = 1.0 at n = 3 (best 0.999996 of 1,024 seeds). Derive the bound from the
   rectified-surprisal cap (the optimum should balance informativeness against
@@ -57,21 +56,21 @@ Candidates, roughly ordered. Each becomes a notebook when it is next.
   stationary distribution of a stochastic system is differentiable); compare against
   e02's weighted atlas winner (reachable frozen state, 3.0 ibits).
 
-- **e02 — ascent phenomenology at n=4.** The mechanistic predictions from
+- **(done as e06)** ascent phenomenology at n=4. The mechanistic predictions from
   `docs/notes/phi-optimization.md` §3, each falsifiable: determinism–degeneracy plane
   trajectories; cut-spectrum compression (maximin theory predicts several cuts *tie*
   at convergence); active-MIP switch events as the landscape's phase transitions; the
   dissociation question (ascend φ_s only — do distinctions, relations, Φ follow?).
-- **Descent under a fixed input–output map.** The unfolding argument (Doerig et al.
+- **(done as e04)** descent under a fixed input–output map. The unfolding argument (Doerig et al.
   2019) as an experiment: minimize φ_s while pinning behavior; the path from a high-Φ
   system to its low-Φ functional twin is a picture of what the theory counts.
-- **Versions as adversaries.** Ascend 4.0 φ_s while monitoring 3.0 Φ and the 2026 cap;
+- **(absorbed by e02/e04/e05)** versions as adversaries. Ascend 4.0 φ_s while monitoring 3.0 Φ and the 2026 cap;
   systems of maximal disagreement are the definition's fault lines. 3.0's exact EMD has
   no gradient (host callback) — 3.0 can be monitored exactly but only descended via the
   Sinkhorn surrogate.
-- **Sensitivity maps vs lesions.** ∂φ_s/∂TPM as an exact integration map, compared to
+- **(done as e07)** sensitivity maps vs lesions. ∂φ_s/∂TPM as an exact integration map, compared to
   the mechanism-φ decomposition and to edge-removal deltas.
-- **Constrained ascent.** Sparsity/wiring budgets; a parameterized physical family
+- **(done as e05)** constrained ascent / Ising. Sparsity/wiring budgets; a parameterized physical family
   (Glauber–Ising ring) to test whether ascent walks to the critical surface
   (Aguilera 2019; Popiel et al. 2020).
 - **Reach vs legibility, measured.** Same ascent under node-TPM logits (CI-native)
