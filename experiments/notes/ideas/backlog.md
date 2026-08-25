@@ -14,7 +14,7 @@ Candidates, roughly ordered. Each becomes a notebook when it is next.
   basin-hopping, and pinning a *feedforward-realizable* behavior (whose floor should
   be 0). Note the value's echo of e03's 1-ibit ceiling is across different
   objectives (2023 vs 2026) — probably coincidence, but check.
-- **Paper 2 candidate — "what the measures cannot see."** e04's three dissociations
+- **(drafted as `paper/behavioral-requirement.md`)** paper 2 — "the behavioral price of integrated information." e04's three dissociations
   in one experiment: φ_s is behaviorally almost-free (90% removable at 0.5% error),
   architecturally invisible (input-dependence unchanged under ten-fold φ removal),
   and internally dissociated (big Φ *rises* 22.2 → 24.3 while φ_s falls 10.6 → 1.0;
